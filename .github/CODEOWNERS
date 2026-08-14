@@ -1,1 +1,3 @@
-* @DS-4-HAFFNER-RONCONI-TOMMASI-WEIGANDT/reviewers
+# Reemplazar <organizacion> por el nombre real de la organización del grupo.
+# El equipo reviewers debe ser visible y tener acceso de escritura al repositorio.
+* @<organizacion>/reviewers
