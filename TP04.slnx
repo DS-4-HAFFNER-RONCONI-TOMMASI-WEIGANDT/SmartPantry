@@ -1,0 +1,23 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU" />
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/TP04.Domain/TP04.Domain.csproj" />
+        <Project Path="src/TP04.Application/TP04.Application.csproj" />
+        <Project Path="src/TP04.EntityFrameworkCore/TP04.EntityFrameworkCore.csproj" />
+        <Project Path="src/TP04.Domain.Shared/TP04.Domain.Shared.csproj" />
+        <Project Path="src/TP04.Application.Contracts/TP04.Application.Contracts.csproj" />
+        <Project Path="src/TP04.HttpApi/TP04.HttpApi.csproj" />
+        <Project Path="src/TP04.HttpApi.Client/TP04.HttpApi.Client.csproj" />
+        <Project Path="src/TP04.HttpApi.Host/TP04.HttpApi.Host.csproj" />
+        <Project Path="src/TP04.DbMigrator/TP04.DbMigrator.csproj" />
+    </Folder>
+    <Folder Name="/test/">
+        <Project Path="test/TP04.Application.Tests/TP04.Application.Tests.csproj" />
+        <Project Path="test/TP04.EntityFrameworkCore.Tests/TP04.EntityFrameworkCore.Tests.csproj" />
+        <Project Path="test/TP04.TestBase/TP04.TestBase.csproj" />
+        <Project Path="test/TP04.Domain.Tests/TP04.Domain.Tests.csproj" />
+        <Project Path="test/TP04.HttpApi.Client.ConsoleTestApp/TP04.HttpApi.Client.ConsoleTestApp.csproj" />
+    </Folder>
+</Solution>
