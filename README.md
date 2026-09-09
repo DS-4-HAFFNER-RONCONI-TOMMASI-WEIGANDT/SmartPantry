@@ -9,6 +9,7 @@ Repositorio del Trabajo Práctico Integrador de Desarrollo de Software 2026.
 - Camilo Tomassi (usuario: CamiloTommasi)
 
 ### Cómo ejecutar
+
 ### Pre-requirements
 
 * [.NET10.0+ SDK](https://dotnet.microsoft.com/download/dotnet)
