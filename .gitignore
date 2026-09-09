@@ -428,3 +428,31 @@ FodyWeavers.xsd
 *.msm
 *.msp
 desktop.ini
+
+# === REGLAS ADICIONALES DE ABP FRAMEWORK ===
+
+# JetBrains Rider
+**/.idea/
+*.sln.iml
+
+# ABP Studio
+**/.abpstudio/
+**/*.abppkg.analyze.json
+
+# TP04 Logs específicos
+src/TP04.Web/Logs/*
+src/TP04.Web.Host/Logs/*
+src/TP04.Web.Public/Logs/*
+src/TP04.Web.Public.Host/Logs/*
+src/TP04.AuthServer/Logs/*
+src/TP04.HttpApi.Host/Logs/*
+src/TP04.DbMigrator/Logs/*
+src/TP04.Blazor.Server/Logs/*
+src/TP04.Blazor.Server.Tiered/Logs/*
+
+# Use abp install-libs to restore.
+**/wwwroot/libs/*
+
+# IdentityServer temp files
+tempkey.rsa
+tempkey.jwk
