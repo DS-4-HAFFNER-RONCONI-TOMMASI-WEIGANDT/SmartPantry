@@ -30,5 +30,3 @@ jobs:
     - run: yarn install --frozen-lockfile
     - run: yarn build
     - run: yarn test --watch=false --browsers ChromeHeadless
-      - name: Alcance de TP02
-        run: echo "La compilación y las pruebas .NET se incorporan en TP03."
