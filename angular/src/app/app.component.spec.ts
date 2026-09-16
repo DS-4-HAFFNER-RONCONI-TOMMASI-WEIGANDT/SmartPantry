@@ -1,5 +1,8 @@
-describe('App Component Dummy Test', () => {
-  it('should pass to satisfy Vitest', () => {
-    expect(true).toBe(true);
+import { AppComponent } from './app.component';
+
+describe('AppComponent', () => {
+  it('should create the app', () => {
+    const app = new AppComponent();
+    expect(app).toBeTruthy();
   });
 });

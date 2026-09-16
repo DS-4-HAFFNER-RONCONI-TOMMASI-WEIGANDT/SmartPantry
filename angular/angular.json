@@ -26,7 +26,8 @@
             },
             "index": "src/index.html",
             "polyfills": [
-              "src/polyfills.ts"
+              "src/polyfills.ts",
+              "zone.js/testing"
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -189,13 +190,13 @@
           }
         },
         "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "tsconfig.spec.json",
-            "buildTarget": "TP04:build",
-            "runner": "vitest"
-          }
-        },
+            "builder": "@angular/build:unit-test",
+            "options": {
+              "tsConfig": "tsconfig.spec.json",
+              "buildTarget": "TP04:build",
+              "runner": "vitest"
+            }
+          },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
