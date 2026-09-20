@@ -16,6 +16,7 @@ using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using TP04.Products;
 
 namespace TP04.EntityFrameworkCore;
 
@@ -32,6 +33,8 @@ public class TP04DbContext :
     public DbSet<Author> Authors { get; set; }
 
     public DbSet<Book> Books { get; set; }
+
+    public DbSet<Product> Products { get; set; } // <-- Tabla de Products agregada
 
     #region Entities from the modules
 
@@ -104,11 +107,24 @@ public class TP04DbContext :
 
         /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(TP04Consts.DbTablePrefix + "YourEntities", TP04Consts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.Entity<Product>(b =>
+        {
+            // Usamos el prefijo para ser consistentes con Author y Book
+            b.ToTable(TP04Consts.DbTablePrefix + "Products", TP04Consts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Barcode)
+                .IsRequired()
+                .HasMaxLength(ProductConsts.MaxBarcodeLength);
+
+            b.HasIndex(x => x.Barcode).IsUnique();
+
+            b.Property(x => x.Name)
+                .IsRequired()
+                .HasMaxLength(ProductConsts.MaxNameLength);
+
+            b.Property(x => x.Brand)
+                .HasMaxLength(ProductConsts.MaxBrandLength);
+        });
     }
 }
