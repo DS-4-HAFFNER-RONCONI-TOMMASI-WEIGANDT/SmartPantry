@@ -1,15 +1,17 @@
-﻿using System;
+﻿using Shouldly;
+using System;
 using System.Threading.Tasks;
-using Shouldly;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Modularity;
 using Xunit;
 
 namespace TP04.Products
 {
     // Hereda de la base de ABP (y no de object) porque ProductManager necesita el
     // repositorio inyectado por el contenedor: no se puede instanciar suelto.
-    public class ProductManager_Tests : TP04DomainTestBase
+    public abstract class ProductManager_Tests<TStartupModule> : TP04DomainTestBase<TStartupModule>
+        where TStartupModule : IAbpModule
     {
         private readonly ProductManager _productManager;
         private readonly IRepository<Product, Guid> _productRepository;

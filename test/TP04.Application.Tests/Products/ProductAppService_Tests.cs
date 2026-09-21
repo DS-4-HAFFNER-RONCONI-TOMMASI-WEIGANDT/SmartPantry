@@ -3,12 +3,14 @@ using System;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities;
+using Volo.Abp.Modularity;
 using Volo.Abp.Validation;
 using Xunit;
 
 namespace TP04.Products
 {
-    public class ProductAppService_Tests : TP04ApplicationTestBase
+    public abstract class ProductAppService_Tests<TStartupModule> : TP04ApplicationTestBase<TStartupModule>
+        where TStartupModule : IAbpModule
     {
         private readonly IProductAppService _productAppService;
 
