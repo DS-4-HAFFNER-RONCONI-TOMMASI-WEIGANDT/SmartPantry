@@ -2,6 +2,7 @@ using Riok.Mapperly.Abstractions;
 using Volo.Abp.Mapperly;
 using TP04.Authors;
 using TP04.Books;
+using TP04.Products;
 
 namespace TP04;
 
@@ -45,4 +46,13 @@ public partial class TP04AuthorToAuthorExcelDtoMapper : MapperBase<Author, Autho
     public override partial AuthorExcelDto Map(Author source);
 
     public override partial void Map(Author source, AuthorExcelDto destination);
+}
+
+// NUEVO MAPPER PARA PRODUCT
+[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
+public partial class TP04ProductToProductDtoMapper : MapperBase<Product, ProductDto>
+{
+    public override partial ProductDto Map(Product source);
+
+    public override partial void Map(Product source, ProductDto destination);
 }
