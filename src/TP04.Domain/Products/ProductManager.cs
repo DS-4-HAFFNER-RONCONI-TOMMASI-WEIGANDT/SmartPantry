@@ -8,18 +8,13 @@ namespace TP04.Products
 {
     /// <summary>
     /// <<DomainService>>
-    /// Regla de negocio 4 de la especificación funcional: un producto interno se
-    /// identifica de manera única por su código de barras externo cuando dicho código
-    /// existe. El criterio de aceptación de RF-08 pide explícitamente evitar duplicados
-    /// para el mismo código de barras.
+    /// Regla de negocio 4 / Invariante 4: no puede haber dos productos con el mismo
+    /// código de barras. El criterio de aceptación de RF-08 pide explícitamente
+    /// evitar duplicados para el mismo código de barras.
     ///
     /// Esta regla necesita consultar el repositorio (¿ya existe ese barcode?), y un
     /// Aggregate Root no debería depender de un repositorio. Por eso es un Domain
     /// Service: coordina una regla que no pertenece a un único Aggregate.
-    ///
-    /// Nota para la Wiki: el Modelo de Dominio del TP03 dice "No se identificó un
-    /// Domain Service necesario en este modelo inicial". Este caso lo reemplaza y hay
-    /// que actualizar esa página.
     /// </summary>
     public class ProductManager : DomainService
     {
@@ -36,11 +31,7 @@ namespace TP04.Products
             // el chequeo como distintos y el duplicado lo termina rechazando el índice
             // único de la base con una excepción de infraestructura (500) en lugar de
             // esta BusinessException.
-            var normalizedBarcode = Check.NotNullOrWhiteSpace(
-                barcode,
-                nameof(barcode),
-                maxLength: ProductConsts.MaxBarcodeLength
-            ).Trim();
+            var normalizedBarcode = Product.NormalizeBarcode(barcode);
 
             await CheckBarcodeIsUniqueAsync(normalizedBarcode);
 
@@ -52,12 +43,36 @@ namespace TP04.Products
             );
         }
 
-        private async Task CheckBarcodeIsUniqueAsync(string barcode)
+        /// <summary>
+        /// TP06: modifica un producto existente. El barcode es editable para poder
+        /// corregir errores de carga sin borrar el producto (cuando exista la
+        /// despensa, los PantryItem lo referencian por Id y el borrado deja de ser
+        /// una opción). Si el barcode cambia, se vuelve a verificar la unicidad
+        /// excluyendo al propio producto.
+        ///
+        /// Todas las verificaciones ocurren antes de modificar la entidad: una
+        /// entrada inválida o un barcode duplicado no dejan cambios parciales.
+        /// </summary>
+        public async Task UpdateAsync(Product product, string barcode, string name, string? brand)
+        {
+            Check.NotNull(product, nameof(product));
+
+            var normalizedBarcode = Product.NormalizeBarcode(barcode);
+
+            if (normalizedBarcode != product.Barcode)
+            {
+                await CheckBarcodeIsUniqueAsync(normalizedBarcode, product.Id);
+            }
+
+            product.Update(normalizedBarcode, name, brand);
+        }
+
+        private async Task CheckBarcodeIsUniqueAsync(string barcode, Guid? excludedProductId = null)
         {
             var existing = await _productRepository.FindAsync(p => p.Barcode == barcode);
-            if (existing != null)
+            if (existing != null && existing.Id != excludedProductId)
             {
-                throw new BusinessException(code: "TP04:Product:DuplicateBarcode")
+                throw new BusinessException(TP04DomainErrorCodes.ProductDuplicateBarcode)
                     .WithData("Barcode", barcode);
             }
         }
