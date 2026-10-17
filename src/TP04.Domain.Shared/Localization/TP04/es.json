@@ -37,6 +37,7 @@
     "Unspecified": "Sistema",
     "SeeAllUsers": "Ver todos los usuarios",
     "TakePhoto": "Tomar foto",
-    "ChoosePhoto": "Escoge una foto"
+    "ChoosePhoto": "Escoge una foto",
+    "TP04:Product:DuplicateBarcode": "Ya existe un producto con el código de barras {Barcode}."
   }
 }
