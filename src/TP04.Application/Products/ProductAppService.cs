@@ -1,38 +1,58 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 
 namespace TP04.Products
 {
-    // Implementado manualmente (sin CrudAppService) a pedido de la consigna del TP05,
-    // para observar explícitamente el recorrido Application -> Domain (ProductManager)
-    // -> EntityFrameworkCore.
+    // TP06: migrado del servicio manual de TP05 a CrudAppService.
     //
-    // Decisión temporal (TP05): [AllowAnonymous] habilita el acceso sin login
-    // únicamente para poder verificar la operación en Swagger, porque todavía no se
-    // implementó autenticación. No representa la política final de autorización y se
-    // revisará cuando se incorpore seguridad.
+    // Provienen del servicio base SIN cambios:
+    //   - GetAsync(id)      -> Repository.GetAsync + mapeo a ProductDto (404 si no existe).
+    //   - GetListAsync(input) -> filtrado, conteo, ordenamiento dinámico (input.Sorting),
+    //                          paginado (SkipCount/MaxResultCount) y mapeo a ProductDto.
+    //   - DeleteAsync(id)   -> Repository.DeleteAsync (borrado físico: Product no es ISoftDelete).
+    //
+    // Se adaptan (override) porque intervienen reglas del dominio:
+    //   - CreateAsync -> la creación pasa por ProductManager (barcode único, normalización).
+    //                   El base mapearía CreateProductDto -> Product con ObjectMapper, lo que
+    //                   saltearía el Domain Service (y el constructor de Product es internal).
+    //   - UpdateAsync -> la modificación pasa por ProductManager.UpdateAsync (unicidad del
+    //                   barcode si cambia + validación atómica en Product.Update). El base
+    //                   copiaría el DTO sobre la entidad con ObjectMapper, salteando las reglas.
+    //   - ApplyDefaultSorting -> orden por nombre cuando el cliente no envía Sorting.
+    //
+    // Decisión temporal (TP05, se mantiene en TP06): [AllowAnonymous] habilita el acceso
+    // sin login únicamente para verificar las operaciones en Swagger, porque todavía no se
+    // implementó autenticación. No representa la política final de autorización.
     [AllowAnonymous]
-    public class ProductAppService : ApplicationService, IProductAppService
+    public class ProductAppService :
+        CrudAppService<
+            Product,
+            ProductDto,
+            Guid,
+            PagedAndSortedResultRequestDto,
+            CreateProductDto,
+            UpdateProductDto>,
+        IProductAppService
     {
-        private readonly IRepository<Product, Guid> _productRepository;
         private readonly ProductManager _productManager;
 
         public ProductAppService(
-            IRepository<Product, Guid> productRepository,
+            IRepository<Product, Guid> repository,
             ProductManager productManager)
+            : base(repository)
         {
-            _productRepository = productRepository;
             _productManager = productManager;
         }
 
-        public async Task<ProductDto> CreateAsync(CreateProductDto input)
+        public override async Task<ProductDto> CreateAsync(CreateProductDto input)
         {
-            // La regla "no duplicar código de barras" (RF-08) se valida DENTRO de
-            // ProductManager. Este servicio solo coordina: le pide al Domain Service
-            // el Product ya validado y lo persiste.
+            await CheckCreatePolicyAsync();
+
             var product = await _productManager.CreateAsync(
                 input.Barcode,
                 input.Name,
@@ -41,17 +61,35 @@ namespace TP04.Products
 
             // autoSave: true fuerza el SaveChanges ahora, para que CreationTime ya
             // esté completo en el DTO que se devuelve.
-            await _productRepository.InsertAsync(product, autoSave: true);
+            await Repository.InsertAsync(product, autoSave: true);
 
-            return ObjectMapper.Map<Product, ProductDto>(product);
+            return await MapToGetOutputDtoAsync(product);
         }
 
-        public async Task<ProductDto> GetAsync(Guid id)
+        public override async Task<ProductDto> UpdateAsync(Guid id, UpdateProductDto input)
         {
-            // Id inexistente -> EntityNotFoundException automática de ABP (404).
-            var product = await _productRepository.GetAsync(id);
+            await CheckUpdatePolicyAsync();
 
-            return ObjectMapper.Map<Product, ProductDto>(product);
+            // Id inexistente -> EntityNotFoundException (404), igual que en GetAsync.
+            var product = await GetEntityByIdAsync(id);
+
+            // Si algo es inválido, ProductManager/Product lanzan la excepción antes de
+            // modificar la entidad y la unidad de trabajo no persiste nada.
+            await _productManager.UpdateAsync(
+                product,
+                input.Barcode,
+                input.Name,
+                input.Brand
+            );
+
+            await Repository.UpdateAsync(product, autoSave: true);
+
+            return await MapToGetOutputDtoAsync(product);
+        }
+
+        protected override IQueryable<Product> ApplyDefaultSorting(IQueryable<Product> query)
+        {
+            return query.OrderBy(p => p.Name);
         }
     }
 }
