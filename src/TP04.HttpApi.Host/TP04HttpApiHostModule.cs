@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using OpenIddict.Validation.AspNetCore;
 using OpenIddict.Server.AspNetCore;
 using TP04.EntityFrameworkCore;
+using TP04.ExternalProducts;
 using TP04.MultiTenancy;
 using TP04.HealthChecks;
 using Microsoft.OpenApi;
@@ -127,6 +129,34 @@ public class TP04HttpApiHostModule : AbpModule
         ConfigureSwagger(context, configuration);
         ConfigureVirtualFileSystem(context);
         ConfigureCors(context, configuration);
+        ConfigureExternalProductCatalog(context, configuration);
+    }
+
+    /// <summary>
+    /// TP07: registro del cliente del catálogo externo mediante IHttpClientFactory.
+    /// Cuando una clase solicita IExternalProductCatalogClient, el contenedor crea
+    /// OpenFoodFactsProductCatalogClient y le entrega un HttpClient administrado por la
+    /// fábrica, ya configurado con URL base, tiempo máximo de espera y User-Agent.
+    /// </summary>
+    private static void ConfigureExternalProductCatalog(
+        ServiceConfigurationContext context,
+        IConfiguration configuration)
+    {
+        var options = configuration
+            .GetSection(OpenFoodFactsOptions.SectionName)
+            .Get<OpenFoodFactsOptions>() ?? new OpenFoodFactsOptions();
+
+        var baseUrl = options.BaseUrl.EndsWith('/') ? options.BaseUrl : options.BaseUrl + "/";
+
+        context.Services.AddHttpClient<
+            IExternalProductCatalogClient,
+            OpenFoodFactsProductCatalogClient>(client =>
+        {
+            client.BaseAddress = new Uri(baseUrl);
+            client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        });
     }
 
     private void ConfigureStudio(IHostEnvironment hostingEnvironment)
