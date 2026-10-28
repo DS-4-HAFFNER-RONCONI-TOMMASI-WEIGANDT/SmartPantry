@@ -17,6 +17,7 @@ using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using TP04.Products;
+using TP04.PantryItems;
 
 namespace TP04.EntityFrameworkCore;
 
@@ -35,6 +36,11 @@ public class TP04DbContext :
     public DbSet<Book> Books { get; set; }
 
     public DbSet<Product> Products { get; set; } // <-- Tabla de Products agregada
+
+    // TP08: modelo mínimo de despensa + advertencias de vencimiento (RF-15)
+    public DbSet<PantryItem> PantryItems { get; set; }
+
+    public DbSet<PantryWarning> PantryWarnings { get; set; }
 
     #region Entities from the modules
 
@@ -125,6 +131,56 @@ public class TP04DbContext :
 
             b.Property(x => x.Brand)
                 .HasMaxLength(ProductConsts.MaxBrandLength);
+        });
+
+        // TP08: ítem mínimo de despensa (propietario, producto, estado, vencimiento).
+        builder.Entity<PantryItem>(b =>
+        {
+            b.ToTable(TP04Consts.DbTablePrefix + "PantryItems", TP04Consts.DbSchema);
+            b.ConfigureByConvention();
+
+            // OwnerId referencia a AbpUsers pero, como recomienda ABP, sin FK hacia
+            // las tablas de otro módulo (Identity): sólo se guarda el Id.
+            b.Property(x => x.OwnerId).IsRequired();
+            b.Property(x => x.Status).IsRequired();
+            b.Property(x => x.ExpirationDate); // date, nullable
+
+            // Restrict: no se puede borrar un producto que está en alguna despensa.
+            b.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasIndex(x => x.OwnerId);
+            // Índice para la consulta del worker (ítems activos que vencen pronto).
+            b.HasIndex(x => new { x.Status, x.ExpirationDate });
+        });
+
+        // TP08 / RF-15: advertencias de vencimiento.
+        builder.Entity<PantryWarning>(b =>
+        {
+            b.ToTable(TP04Consts.DbTablePrefix + "PantryWarnings", TP04Consts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.OwnerId).IsRequired();
+            b.Property(x => x.Type).IsRequired();
+            b.Property(x => x.ExpirationDate).IsRequired();
+            b.Property(x => x.IsExpired).IsRequired();
+            b.Property(x => x.IsActive).IsRequired();
+
+            // Si se elimina el ítem, se eliminan sus advertencias.
+            b.HasOne<PantryItem>()
+                .WithMany()
+                .HasForeignKey(x => x.PantryItemId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Clave lógica estable: una sola advertencia por ítem y tipo.
+            // Aunque dos ejecuciones del worker se pisen, la base rechaza el duplicado.
+            b.HasIndex(x => new { x.PantryItemId, x.Type }).IsUnique();
+
+            b.HasIndex(x => x.OwnerId);
         });
     }
 }
