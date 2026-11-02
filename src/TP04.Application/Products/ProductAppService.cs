@@ -25,10 +25,10 @@ namespace TP04.Products
     //                   copiaría el DTO sobre la entidad con ObjectMapper, salteando las reglas.
     //   - ApplyDefaultSorting -> orden por nombre cuando el cliente no envía Sorting.
     //
-    // Decisión temporal (TP05, se mantiene en TP06): [AllowAnonymous] habilita el acceso
-    // sin login únicamente para verificar las operaciones en Swagger, porque todavía no se
-    // implementó autenticación. No representa la política final de autorización.
-    [AllowAnonymous]
+    // TP09 (RF-08): se reemplaza el [AllowAnonymous] temporal de TP05/TP06 por [Authorize].
+    // Alcanza con estar autenticado (sin política específica), así el usuario común
+    // conserva el guardado de productos. Sin sesión ni token la API responde 401.
+    [Authorize]
     public class ProductAppService :
         CrudAppService<
             Product,

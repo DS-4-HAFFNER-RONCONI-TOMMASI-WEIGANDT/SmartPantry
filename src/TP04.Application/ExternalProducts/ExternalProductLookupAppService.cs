@@ -1,7 +1,9 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TP04.ExternalProducts
 {
+    [Authorize]
     public class ExternalProductLookupAppService : TP04AppService, IExternalProductLookupAppService
     {
         private readonly IExternalProductCatalogClient _catalogClient;
