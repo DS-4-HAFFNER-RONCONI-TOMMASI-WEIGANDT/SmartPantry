@@ -46,6 +46,9 @@
     "Menu:Home": "Home",
     "LongWelcomeMessage": "Welcome to the application. This is a startup project based on the ABP framework. For more information visit",
     "Welcome": "Welcome",
-    "TP04:Product:DuplicateBarcode": "A product with barcode {Barcode} already exists."
+    "TP04:Product:DuplicateBarcode": "A product with barcode {Barcode} already exists.",
+    "TP04:PantryItem:NegativeQuantity": "The quantity cannot be negative.",
+    "TP04:PantryItem:AlreadyConsumed": "This item was already consumed and can no longer be edited.",
+    "Pantry:Validation:InvalidDate": "Enter a valid expiration date between 2000-01-01 and 2100-12-31."
   }
 }
