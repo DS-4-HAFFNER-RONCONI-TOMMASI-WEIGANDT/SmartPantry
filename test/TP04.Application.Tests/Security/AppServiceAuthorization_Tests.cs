@@ -23,6 +23,7 @@ namespace TP04.Security
         [Theory]
         [InlineData(typeof(ExternalProductLookupAppService))] // RF-05
         [InlineData(typeof(ProductAppService))]               // RF-08
+        [InlineData(typeof(PantryItemAppService))]            // RF-11 (Agregado para la Parte 2)
         public void Own_AppServices_Should_Require_Authentication(Type appServiceType)
         {
             var authorize = appServiceType.GetCustomAttributes<AuthorizeAttribute>(inherit: true).ToList();
@@ -34,6 +35,7 @@ namespace TP04.Security
         [Theory]
         [InlineData(typeof(ExternalProductLookupAppService))] // RF-05
         [InlineData(typeof(ProductAppService))]               // RF-08
+        [InlineData(typeof(PantryItemAppService))]            // RF-11 (Agregado para la Parte 2)
         public void Own_AppServices_Should_Not_Require_Admin_Permissions(Type appServiceType)
         {
             // [Authorize] sin política: alcanza con estar autenticado, así el usuario
@@ -46,6 +48,7 @@ namespace TP04.Security
         [Theory]
         [InlineData(typeof(ExternalProductLookupAppService))] // RF-05
         [InlineData(typeof(ProductAppService))]               // RF-08
+        [InlineData(typeof(PantryItemAppService))]            // RF-11 (Agregado para la Parte 2)
         public void Own_AppService_Methods_Should_Not_Allow_Anonymous(Type appServiceType)
         {
             // Incluye los métodos heredados de CrudAppService (GetAsync, GetListAsync, DeleteAsync).
