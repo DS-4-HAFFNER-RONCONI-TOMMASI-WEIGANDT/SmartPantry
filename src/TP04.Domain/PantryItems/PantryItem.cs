@@ -1,4 +1,5 @@
 using System;
+using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace TP04.PantryItems
@@ -29,7 +30,7 @@ namespace TP04.PantryItems
         {
             OwnerId = ownerId;
             ProductId = productId;
-            Quantity = quantity;
+            SetQuantity(quantity);
             Status = PantryItemStatus.Active;
         }
 
@@ -38,7 +39,7 @@ namespace TP04.PantryItems
         {
             OwnerId = ownerId;
             ProductId = productId;
-            Unit = unit;
+            SetUnit(unit);
             Status = PantryItemStatus.Active;
         }
 
@@ -56,8 +57,8 @@ namespace TP04.PantryItems
         {
             OwnerId = ownerId;
             ProductId = productId;
-            Quantity = quantity;
-            Unit = unit;
+            SetQuantity(quantity);
+            SetUnit(unit);
             Status = PantryItemStatus.Active;
         }
 
@@ -66,8 +67,8 @@ namespace TP04.PantryItems
         {
             OwnerId = ownerId;
             ProductId = productId;
-            Quantity = quantity;
-            Unit = unit;
+            SetQuantity(quantity);
+            SetUnit(unit);
             ExpirationDate = expirationDate;
             Status = PantryItemStatus.Active;
         }
@@ -79,21 +80,54 @@ namespace TP04.PantryItems
 
         public void UpdateDetails(decimal quantity, string? unit, DateOnly? expirationDate)
         {
-            Quantity = quantity;
-            Unit = unit;
-            ExpirationDate = expirationDate;
+            UpdateDetails((decimal?)quantity, unit, expirationDate);
         }
 
         public void UpdateDetails(decimal? quantity, string? unit, DateOnly? expirationDate)
         {
-            Quantity = quantity;
-            Unit = unit;
+            if (Status == PantryItemStatus.Consumed)
+            {
+                throw new BusinessException("TP04:PantryItem:AlreadyConsumed")
+                    .WithData("Id", Id);
+            }
+
+            SetQuantity(quantity);
+            SetUnit(unit);
             ExpirationDate = expirationDate;
         }
 
         public void ChangeExpirationDate(DateOnly? expirationDate)
         {
+            if (Status == PantryItemStatus.Consumed)
+            {
+                throw new BusinessException("TP04:PantryItem:AlreadyConsumed")
+                    .WithData("Id", Id);
+            }
+
             ExpirationDate = expirationDate;
+        }
+
+        private void SetQuantity(decimal? quantity)
+        {
+            if (quantity.HasValue && quantity.Value < 0)
+            {
+                throw new BusinessException("TP04:PantryItem:NegativeQuantity");
+            }
+
+            Quantity = quantity;
+        }
+
+        private void SetUnit(string? unit)
+        {
+            if (string.IsNullOrWhiteSpace(unit))
+            {
+                Unit = null;
+                return;
+            }
+
+            var trimmedUnit = unit.Trim();
+            Check.Length(trimmedUnit, nameof(unit), PantryItemConsts.MaxUnitLength);
+            Unit = trimmedUnit;
         }
     }
 }
