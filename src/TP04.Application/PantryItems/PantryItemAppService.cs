@@ -107,12 +107,12 @@ namespace TP04.PantryItems
             var product = await _productRepository.GetAsync(input.ProductId);
 
             var item = new PantryItem(
-            GuidGenerator.Create(),
-            CurrentUser.GetId(), // el propietario lo decide el servidor
-            product.Id,
-            input.Quantity,
-            input.Unit,
-            input.ExpirationDate);
+                GuidGenerator.Create(),
+                CurrentUser.GetId(), // el propietario lo decide el servidor
+                product.Id,
+                input.ExpirationDate,
+                input.Quantity,
+                input.Unit);
 
             await _pantryItemRepository.InsertAsync(item, autoSave: true);
 

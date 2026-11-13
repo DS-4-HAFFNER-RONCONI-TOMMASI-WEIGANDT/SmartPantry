@@ -4,130 +4,126 @@ using Volo.Abp.Domain.Entities.Auditing;
 
 namespace TP04.PantryItems
 {
+    /// <summary>
+    /// Ítem de la despensa de un usuario.
+    ///
+    /// TP08: modelo mínimo para el worker de vencimientos (RF-15): propietario,
+    /// producto, estado y fecha de vencimiento opcional.
+    /// TP10: se agregan cantidad y unidad (opcionales) y la edición por el usuario
+    /// (RF-11). La regla del worker y su idempotencia no cambian.
+    ///
+    /// Regla de negocio 3: cada ítem pertenece a un único usuario. El OwnerId se fija
+    /// al crear el ítem y no se puede cambiar. Quien decide que el ítem es del
+    /// usuario actual es el AppService (ICurrentUser), nunca el cliente.
+    /// </summary>
     public class PantryItem : AuditedAggregateRoot<Guid>
     {
-        public Guid OwnerId { get; set; }
-        public Guid ProductId { get; set; }
-        public decimal? Quantity { get; set; }
-        public string? Unit { get; set; }
-        public DateOnly? ExpirationDate { get; set; }
-        public PantryItemStatus Status { get; set; }
+        /// <summary>Id del usuario dueño del ítem (AbpUsers.Id).</summary>
+        public virtual Guid OwnerId { get; private set; }
 
-        protected PantryItem()
-        {
-        }
+        /// <summary>Producto guardado del catálogo interno (AppProducts.Id).</summary>
+        public virtual Guid ProductId { get; private set; }
 
-        // 1. (id, ownerId, productId)
-        public PantryItem(Guid id, Guid ownerId, Guid productId) : base(id)
-        {
-            OwnerId = ownerId;
-            ProductId = productId;
-            Status = PantryItemStatus.Active;
-        }
+        public virtual PantryItemStatus Status { get; private set; }
 
-        // 2. (id, ownerId, productId, quantity)
-        public PantryItem(Guid id, Guid ownerId, Guid productId, decimal? quantity) : base(id)
-        {
-            OwnerId = ownerId;
-            ProductId = productId;
-            SetQuantity(quantity);
-            Status = PantryItemStatus.Active;
-        }
+        /// <summary>
+        /// Fecha calendario de vencimiento, sin hora. Es opcional: hay productos
+        /// sin fecha (RF-10 la pide de forma opcional).
+        /// </summary>
+        public virtual DateOnly? ExpirationDate { get; private set; }
 
-        // 3. (id, ownerId, productId, unit)
-        public PantryItem(Guid id, Guid ownerId, Guid productId, string? unit) : base(id)
-        {
-            OwnerId = ownerId;
-            ProductId = productId;
-            SetUnit(unit);
-            Status = PantryItemStatus.Active;
-        }
+        /// <summary>TP10: cantidad opcional, nunca negativa. Null = dato no informado (RF-09).</summary>
+        public virtual decimal? Quantity { get; private set; }
 
-        // 4. (id, ownerId, productId, expirationDate)
-        public PantryItem(Guid id, Guid ownerId, Guid productId, DateOnly? expirationDate) : base(id)
+        /// <summary>TP10: unidad opcional ("kg", "unidades"...). Null = dato no informado (RF-09).</summary>
+        public virtual string? Unit { get; private set; }
+
+        // Requerido por EF Core.
+        protected PantryItem() { }
+
+        public PantryItem(
+            Guid id,
+            Guid ownerId,
+            Guid productId,
+            DateOnly? expirationDate = null,
+            decimal? quantity = null,
+            string? unit = null
+        ) : base(id)
         {
+            if (ownerId == Guid.Empty)
+            {
+                throw new ArgumentException("El ítem de despensa debe tener un propietario.", nameof(ownerId));
+            }
+
+            if (productId == Guid.Empty)
+            {
+                throw new ArgumentException("El ítem de despensa debe referenciar un producto.", nameof(productId));
+            }
+
             OwnerId = ownerId;
             ProductId = productId;
             ExpirationDate = expirationDate;
+            Quantity = NormalizeQuantity(quantity);
+            Unit = NormalizeUnit(unit);
             Status = PantryItemStatus.Active;
         }
 
-        // 5. (id, ownerId, productId, quantity, unit)
-        public PantryItem(Guid id, Guid ownerId, Guid productId, decimal? quantity, string? unit) : base(id)
+        /// <summary>
+        /// TP10 (RF-11): actualiza cantidad, unidad y fecha de vencimiento.
+        ///
+        /// Primero valida todos los valores y recién después asigna: si algo es
+        /// inválido, la entidad no queda modificada a medias. Un ítem consumido es
+        /// historial (regla de negocio 6) y ya no se edita.
+        /// </summary>
+        public void UpdateDetails(decimal? quantity, string? unit, DateOnly? expirationDate)
         {
-            OwnerId = ownerId;
-            ProductId = productId;
-            SetQuantity(quantity);
-            SetUnit(unit);
-            Status = PantryItemStatus.Active;
-        }
+            if (Status == PantryItemStatus.Consumed)
+            {
+                throw new BusinessException(TP04DomainErrorCodes.PantryItemAlreadyConsumed);
+            }
 
-        // 6. Completo: para seeders, managers y servicios
-        public PantryItem(Guid id, Guid ownerId, Guid productId, decimal? quantity, string? unit, DateOnly? expirationDate = null) : base(id)
-        {
-            OwnerId = ownerId;
-            ProductId = productId;
-            SetQuantity(quantity);
-            SetUnit(unit);
+            var normalizedQuantity = NormalizeQuantity(quantity);
+            var normalizedUnit = NormalizeUnit(unit);
+
+            Quantity = normalizedQuantity;
+            Unit = normalizedUnit;
             ExpirationDate = expirationDate;
-            Status = PantryItemStatus.Active;
         }
 
+        /// <summary>
+        /// Cambia (o quita, con null) la fecha de vencimiento. El worker detecta el
+        /// cambio en su próxima ejecución y actualiza o desactiva la advertencia.
+        /// </summary>
+        public void ChangeExpirationDate(DateOnly? expirationDate)
+        {
+            ExpirationDate = expirationDate;
+        }
+
+        /// <summary>
+        /// Marca el ítem como consumido. No se elimina (regla de negocio 6) y deja
+        /// de generar advertencias de vencimiento. Marcarlo dos veces no cambia nada.
+        /// </summary>
         public void MarkAsConsumed()
         {
             Status = PantryItemStatus.Consumed;
         }
 
-        public void UpdateDetails(decimal quantity, string? unit, DateOnly? expirationDate)
+        private static decimal? NormalizeQuantity(decimal? quantity)
         {
-            UpdateDetails((decimal?)quantity, unit, expirationDate);
-        }
-
-        public void UpdateDetails(decimal? quantity, string? unit, DateOnly? expirationDate)
-        {
-            if (Status == PantryItemStatus.Consumed)
+            if (quantity < 0)
             {
-                throw new BusinessException("TP04:PantryItem:AlreadyConsumed")
-                    .WithData("Id", Id);
+                throw new BusinessException(TP04DomainErrorCodes.PantryItemNegativeQuantity);
             }
 
-            SetQuantity(quantity);
-            SetUnit(unit);
-            ExpirationDate = expirationDate;
+            return quantity;
         }
 
-        public void ChangeExpirationDate(DateOnly? expirationDate)
+        private static string? NormalizeUnit(string? unit)
         {
-            if (Status == PantryItemStatus.Consumed)
-            {
-                throw new BusinessException("TP04:PantryItem:AlreadyConsumed")
-                    .WithData("Id", Id);
-            }
-
-            ExpirationDate = expirationDate;
-        }
-
-        private void SetQuantity(decimal? quantity)
-        {
-            if (quantity.HasValue && quantity.Value < 0)
-            {
-                throw new BusinessException("TP04:PantryItem:NegativeQuantity");
-            }
-
-            Quantity = quantity;
-        }
-
-        private void SetUnit(string? unit)
-        {
-            if (string.IsNullOrWhiteSpace(unit))
-            {
-                Unit = null;
-                return;
-            }
-
-            var trimmedUnit = unit.Trim();
-            Check.Length(trimmedUnit, nameof(unit), PantryItemConsts.MaxUnitLength);
-            Unit = trimmedUnit;
+            // Unidad vacía o con espacios = dato no informado.
+            return string.IsNullOrWhiteSpace(unit)
+                ? null
+                : Check.Length(unit.Trim(), nameof(unit), PantryItemConsts.MaxUnitLength);
         }
     }
 }
