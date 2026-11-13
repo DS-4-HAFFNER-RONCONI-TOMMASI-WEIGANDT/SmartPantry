@@ -1,7 +1,5 @@
 # SmartPantry
 
-[![CI](https://github.com/DS-4-HAFFNER-RONCONI-TOMMASI-WEIGANDT/SmartPantry/actions/workflows/ci.yml/badge.svg)](https://github.com/DS-4-HAFFNER-RONCONI-TOMMASI-WEIGANDT/SmartPantry/actions/workflows/ci.yml)
-
 Repositorio del Trabajo Práctico Integrador de Desarrollo de Software 2026 (UTN FRCU): **Despensa inteligente y perfil nutricional**.
 
 SmartPantry permite que cada usuario busque productos alimenticios en **Open Food Facts**, los guarde en el sistema, los agregue a su despensa con cantidad y fecha de vencimiento, y reciba advertencias de vencimientos próximos.
@@ -125,7 +123,7 @@ Otras secciones de `src/TP04.HttpApi.Host/appsettings.json`:
    ```
    La aplicación queda en <http://localhost:4200>.
 
-5. **Iniciar sesión:** en un entorno local recién migrado, el usuario administrador es `admin` con la contraseña predeterminada de ABP (`1q2w3E*`). Para probar como usuario común, crear un usuario sin roles desde *Administración → Identidad → Usuarios*.
+5. **Iniciar sesión:** en un entorno local recién migrado, el usuario administrador es `admin`, con la contraseña inicial que define ABP al ejecutar el DbMigrator. Para probar como usuario común, crear un usuario sin roles desde *Administración → Identidad → Usuarios*.
 
 Si cambia el contrato del backend, los proxies de Angular se regeneran con el host en ejecución (no se corrigen a mano):
 ```cmd
