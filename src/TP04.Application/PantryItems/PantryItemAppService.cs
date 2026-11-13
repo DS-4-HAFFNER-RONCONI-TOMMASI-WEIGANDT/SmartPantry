@@ -49,9 +49,9 @@ namespace TP04.PantryItems
             var items = await AsyncExecuter.ToListAsync(query.Skip(input.SkipCount).Take(input.MaxResultCount));
 
             return new PagedResultDto<PantryItemDto>(
-                totalCount,
-                ObjectMapper.Map<List<PantryItem>, List<PantryItemDto>>(items)
-            );
+    totalCount,
+    items.Select(i => ObjectMapper.Map<PantryItem, PantryItemDto>(i)).ToList()
+);
         }
 
         // Se agrega para cumplir con la interfaz de tu compañero
