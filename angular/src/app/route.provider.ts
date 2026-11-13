@@ -29,5 +29,14 @@ function configureRoutes() {
         layout: eLayoutType.application,
         requiredPolicy: 'TP04.Authors',
       },
+      {
+        // TP10: el nombre es una clave de localización y el path coincide con la
+        // ruta 'pantry' de app.routes.ts. Registrar el menú no crea la ruta.
+        path: '/pantry',
+        name: '::Menu:Pantry',
+        iconClass: 'fas fa-carrot',
+        order: 2,
+        layout: eLayoutType.application,
+      },
   ]);
 }

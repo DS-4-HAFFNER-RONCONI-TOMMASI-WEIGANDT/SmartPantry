@@ -1,0 +1,42 @@
+// Datos del ítem en línea; en pantallas angostas pasan a la línea siguiente
+// (flex-wrap), así la página no tiene desplazamiento horizontal.
+.pantry-item__details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+
+  > div {
+    display: flex;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  dt {
+    font-weight: 500;
+
+    &::after {
+      content: ':';
+    }
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.pantry-item__info {
+  min-width: 0;
+}
+
+.pantry-item__actions {
+  flex-shrink: 0;
+}
+
+// Historial: los consumidos se ven atenuados y con la etiqueta "Consumido".
+.pantry-item--consumed {
+  background-color: var(--bs-tertiary-bg, #f8f9fa);
+
+  .pantry-item__info {
+    opacity: 0.75;
+  }
+}
