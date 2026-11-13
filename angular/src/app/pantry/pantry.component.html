@@ -110,6 +110,41 @@
                     </div>
                   </dl>
                 </div>
+
+                <div class="pantry-item__actions d-flex flex-wrap align-items-start gap-1">
+                  @if (item.status === status.Active) {
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary btn-sm"
+                      data-test="pantry-edit"
+                      [disabled]="busyItemId() === item.id"
+                      (click)="edit(item)"
+                    >
+                      <i class="fa fa-pen me-1" aria-hidden="true"></i>
+                      {{ '::Pantry:Edit' | abpLocalization }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-outline-success btn-sm"
+                      data-test="pantry-consume"
+                      [disabled]="busyItemId() === item.id"
+                      (click)="markAsConsumed(item)"
+                    >
+                      <i class="fa fa-check me-1" aria-hidden="true"></i>
+                      {{ '::Pantry:MarkAsConsumed' | abpLocalization }}
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger btn-sm"
+                    data-test="pantry-delete"
+                    [disabled]="busyItemId() === item.id"
+                    (click)="delete(item)"
+                  >
+                    <i class="fa fa-trash me-1" aria-hidden="true"></i>
+                    {{ '::Pantry:Delete' | abpLocalization }}
+                  </button>
+                </div>
               </div>
             </li>
           }
@@ -132,3 +167,94 @@
     }
   </div>
 </div>
+
+<abp-modal [visible]="isModalOpen()" (visibleChange)="isModalOpen.set($event)" [busy]="saving()">
+  <ng-template #abpHeader>
+    <h3 class="text-break">
+      {{ '::Pantry:EditTitle' | abpLocalization: (selectedItem()?.productName ?? '') }}
+    </h3>
+  </ng-template>
+
+  <ng-template #abpBody>
+    <form id="pantry-item-form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="mb-3">
+        <label for="pantry-quantity" class="form-label">{{ '::Pantry:Quantity' | abpLocalization }}</label>
+        <input
+          id="pantry-quantity"
+          type="number"
+          inputmode="decimal"
+          step="any"
+          min="0"
+          class="form-control"
+          formControlName="quantity"
+          [class.is-invalid]="showError('quantity', 'min') || showError('quantity', 'max')"
+        />
+        @if (showError('quantity', 'min')) {
+          <div class="invalid-feedback d-block" data-test="error-quantity-min">
+            {{ '::Pantry:Validation:QuantityNonNegative' | abpLocalization }}
+          </div>
+        }
+        @if (showError('quantity', 'max')) {
+          <div class="invalid-feedback d-block" data-test="error-quantity-max">
+            {{ '::Pantry:Validation:QuantityMax' | abpLocalization: '' + rules.maxQuantity }}
+          </div>
+        }
+        <div class="form-text">{{ '::Pantry:OptionalHint' | abpLocalization }}</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="pantry-unit" class="form-label">{{ '::Pantry:Unit' | abpLocalization }}</label>
+        <input
+          id="pantry-unit"
+          type="text"
+          class="form-control"
+          formControlName="unit"
+          [class.is-invalid]="showError('unit', 'maxlength')"
+        />
+        @if (showError('unit', 'maxlength')) {
+          <div class="invalid-feedback d-block" data-test="error-unit-maxlength">
+            {{ '::Pantry:Validation:UnitMaxLength' | abpLocalization: '' + rules.maxUnitLength }}
+          </div>
+        }
+      </div>
+
+      <div class="mb-1">
+        <label for="pantry-expiration" class="form-label">
+          {{ '::Pantry:ExpirationDate' | abpLocalization }}
+        </label>
+        <input
+          #dateInput
+          id="pantry-expiration"
+          type="date"
+          class="form-control"
+          formControlName="expirationDate"
+          [min]="rules.minExpirationDate"
+          [max]="rules.maxExpirationDate"
+          [class.is-invalid]="showError('expirationDate', 'invalidDate')"
+          (input)="onDateInput(dateInput)"
+          (blur)="onDateInput(dateInput)"
+        />
+        @if (showError('expirationDate', 'invalidDate')) {
+          <div class="invalid-feedback d-block" data-test="error-expiration-date">
+            {{ '::Pantry:Validation:InvalidDate' | abpLocalization }}
+          </div>
+        }
+      </div>
+    </form>
+  </ng-template>
+
+  <ng-template #abpFooter>
+    <button type="button" class="btn btn-secondary" abpClose>
+      {{ '::Pantry:Cancel' | abpLocalization }}
+    </button>
+    <abp-button
+      iconClass="fa fa-check"
+      buttonType="submit"
+      formName="pantry-item-form"
+      [loading]="saving()"
+      [disabled]="saving() || form.invalid"
+    >
+      {{ '::Pantry:Save' | abpLocalization }}
+    </abp-button>
+  </ng-template>
+</abp-modal>
