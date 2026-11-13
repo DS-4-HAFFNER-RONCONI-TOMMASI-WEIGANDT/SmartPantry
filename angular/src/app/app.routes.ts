@@ -32,4 +32,12 @@ export const APP_ROUTES: Routes = [
     loadComponent: () => import('./author/author.component').then(c => c.AuthorComponent),
     canActivate: [authGuard, permissionGuard],
   },
+  {
+    // TP10 (RF-11): "Mi despensa". Sólo pide sesión (authGuard): sin sesión redirige
+    // al login de ABP. No usa permissionGuard porque cualquier usuario autenticado
+    // administra su propia despensa; el aislamiento por usuario lo hace el servidor.
+    path: 'pantry',
+    loadComponent: () => import('./pantry/pantry.component').then(c => c.PantryComponent),
+    canActivate: [authGuard],
+  },
 ];
