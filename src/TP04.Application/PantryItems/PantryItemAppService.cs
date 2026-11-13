@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
@@ -45,13 +46,24 @@ namespace TP04.PantryItems
 
             query = query.Where(x => x.OwnerId == CurrentUser.Id);
 
+            if (input.Status.HasValue)
+            {
+                query = query.Where(x => x.Status == input.Status.Value);
+            }
+
             var totalCount = await AsyncExecuter.CountAsync(query);
-            var items = await AsyncExecuter.ToListAsync(query.Skip(input.SkipCount).Take(input.MaxResultCount));
+
+            query = string.IsNullOrWhiteSpace(input.Sorting)
+                ? query.OrderBy(x => x.ExpirationDate)
+                : query.OrderBy(input.Sorting);
+
+            var items = await AsyncExecuter.ToListAsync(
+                query.Skip(input.SkipCount).Take(input.MaxResultCount));
 
             return new PagedResultDto<PantryItemDto>(
-    totalCount,
-    items.Select(i => ObjectMapper.Map<PantryItem, PantryItemDto>(i)).ToList()
-);
+                totalCount,
+                items.Select(i => ObjectMapper.Map<PantryItem, PantryItemDto>(i)).ToList()
+            );
         }
 
         // Se agrega para cumplir con la interfaz de tu compañero
