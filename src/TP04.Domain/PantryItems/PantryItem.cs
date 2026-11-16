@@ -1,19 +1,20 @@
 using System;
+using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace TP04.PantryItems
 {
     /// <summary>
-    /// TP08: modelo MÍNIMO de ítem de despensa, sólo lo necesario para que el
-    /// worker de vencimientos (RF-15) procese datos propios del sistema:
-    /// propietario, producto, estado y fecha de vencimiento opcional.
+    /// Ítem de la despensa de un usuario.
     ///
-    /// Cantidad, unidad y la administración por el usuario (RF-10 / RF-11) llegan
-    /// en un TP posterior, junto con la seguridad. Por eso todavía NO hay una API
-    /// pública que permita crear ítems ni elegir/modificar su propietario.
+    /// TP08: modelo mínimo para el worker de vencimientos (RF-15): propietario,
+    /// producto, estado y fecha de vencimiento opcional.
+    /// TP10: se agregan cantidad y unidad (opcionales) y la edición por el usuario
+    /// (RF-11). La regla del worker y su idempotencia no cambian.
     ///
-    /// Regla de negocio 3: cada ítem pertenece a un único usuario. El OwnerId es
-    /// un dato persistido; nunca se toma del usuario HTTP actual (ICurrentUser).
+    /// Regla de negocio 3: cada ítem pertenece a un único usuario. El OwnerId se fija
+    /// al crear el ítem y no se puede cambiar. Quien decide que el ítem es del
+    /// usuario actual es el AppService (ICurrentUser), nunca el cliente.
     /// </summary>
     public class PantryItem : AuditedAggregateRoot<Guid>
     {
@@ -31,6 +32,12 @@ namespace TP04.PantryItems
         /// </summary>
         public virtual DateOnly? ExpirationDate { get; private set; }
 
+        /// <summary>TP10: cantidad opcional, nunca negativa. Null = dato no informado (RF-09).</summary>
+        public virtual decimal? Quantity { get; private set; }
+
+        /// <summary>TP10: unidad opcional ("kg", "unidades"...). Null = dato no informado (RF-09).</summary>
+        public virtual string? Unit { get; private set; }
+
         // Requerido por EF Core.
         protected PantryItem() { }
 
@@ -38,7 +45,9 @@ namespace TP04.PantryItems
             Guid id,
             Guid ownerId,
             Guid productId,
-            DateOnly? expirationDate = null
+            DateOnly? expirationDate = null,
+            decimal? quantity = null,
+            string? unit = null
         ) : base(id)
         {
             if (ownerId == Guid.Empty)
@@ -54,7 +63,31 @@ namespace TP04.PantryItems
             OwnerId = ownerId;
             ProductId = productId;
             ExpirationDate = expirationDate;
+            Quantity = NormalizeQuantity(quantity);
+            Unit = NormalizeUnit(unit);
             Status = PantryItemStatus.Active;
+        }
+
+        /// <summary>
+        /// TP10 (RF-11): actualiza cantidad, unidad y fecha de vencimiento.
+        ///
+        /// Primero valida todos los valores y recién después asigna: si algo es
+        /// inválido, la entidad no queda modificada a medias. Un ítem consumido es
+        /// historial (regla de negocio 6) y ya no se edita.
+        /// </summary>
+        public void UpdateDetails(decimal? quantity, string? unit, DateOnly? expirationDate)
+        {
+            if (Status == PantryItemStatus.Consumed)
+            {
+                throw new BusinessException(TP04DomainErrorCodes.PantryItemAlreadyConsumed);
+            }
+
+            var normalizedQuantity = NormalizeQuantity(quantity);
+            var normalizedUnit = NormalizeUnit(unit);
+
+            Quantity = normalizedQuantity;
+            Unit = normalizedUnit;
+            ExpirationDate = expirationDate;
         }
 
         /// <summary>
@@ -68,11 +101,29 @@ namespace TP04.PantryItems
 
         /// <summary>
         /// Marca el ítem como consumido. No se elimina (regla de negocio 6) y deja
-        /// de generar advertencias de vencimiento.
+        /// de generar advertencias de vencimiento. Marcarlo dos veces no cambia nada.
         /// </summary>
         public void MarkAsConsumed()
         {
             Status = PantryItemStatus.Consumed;
+        }
+
+        private static decimal? NormalizeQuantity(decimal? quantity)
+        {
+            if (quantity < 0)
+            {
+                throw new BusinessException(TP04DomainErrorCodes.PantryItemNegativeQuantity);
+            }
+
+            return quantity;
+        }
+
+        private static string? NormalizeUnit(string? unit)
+        {
+            // Unidad vacía o con espacios = dato no informado.
+            return string.IsNullOrWhiteSpace(unit)
+                ? null
+                : Check.Length(unit.Trim(), nameof(unit), PantryItemConsts.MaxUnitLength);
         }
     }
 }

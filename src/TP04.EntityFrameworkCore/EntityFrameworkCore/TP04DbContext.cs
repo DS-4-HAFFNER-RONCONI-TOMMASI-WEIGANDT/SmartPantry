@@ -133,7 +133,7 @@ public class TP04DbContext :
                 .HasMaxLength(ProductConsts.MaxBrandLength);
         });
 
-        // TP08: ítem mínimo de despensa (propietario, producto, estado, vencimiento).
+        // TP08: ítem de despensa (propietario, producto, estado, vencimiento). TP10: cantidad y unidad.
         builder.Entity<PantryItem>(b =>
         {
             b.ToTable(TP04Consts.DbTablePrefix + "PantryItems", TP04Consts.DbSchema);
@@ -144,6 +144,12 @@ public class TP04DbContext :
             b.Property(x => x.OwnerId).IsRequired();
             b.Property(x => x.Status).IsRequired();
             b.Property(x => x.ExpirationDate); // date, nullable
+
+            // TP10 (RF-11): cantidad y unidad opcionales.
+            b.Property(x => x.Quantity)
+                .HasPrecision(PantryItemConsts.QuantityPrecision, PantryItemConsts.QuantityScale);
+            b.Property(x => x.Unit)
+                .HasMaxLength(PantryItemConsts.MaxUnitLength);
 
             // Restrict: no se puede borrar un producto que está en alguna despensa.
             b.HasOne<Product>()
