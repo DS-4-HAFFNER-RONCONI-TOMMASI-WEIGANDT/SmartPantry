@@ -15,7 +15,7 @@ export const environment = {
   production: true,
   application: {
     baseUrl,
-    name: 'TP04',
+    name: 'SmartPantry',
   },
   oAuthConfig,
   apis: {
