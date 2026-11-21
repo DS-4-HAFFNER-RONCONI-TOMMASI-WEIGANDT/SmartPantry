@@ -41,6 +41,9 @@ namespace TP04.Security
         {
             // [Authorize] sin política: alcanza con estar autenticado, así el usuario
             // común conserva la consulta (RF-05), el guardado (RF-08) y su despensa (RF-11).
+            // TP final: en ProductAppService, editar y borrar exigen TP04.Products.Manage
+            // mediante UpdatePolicyName/DeletePolicyName (no son atributos de la clase);
+            // eso lo prueba ProductAuthorization_Tests con la autorización real.
             var authorize = appServiceType.GetCustomAttributes<AuthorizeAttribute>(inherit: true);
 
             authorize.ShouldAllBe(a => string.IsNullOrEmpty(a.Policy) && string.IsNullOrEmpty(a.Roles));
