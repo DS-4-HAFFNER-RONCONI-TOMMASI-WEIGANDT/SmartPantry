@@ -83,6 +83,20 @@
     "Pantry:DeleteConfirmationMessage": "'{0}' will be removed from your pantry. This action cannot be undone.",
     "Pantry:SavedSuccessfully": "Changes saved.",
     "Pantry:ConsumedSuccessfully": "'{0}' was marked as consumed.",
-    "Pantry:DeletedSuccessfully": "The product was removed from your pantry."
+    "Pantry:DeletedSuccessfully": "The product was removed from your pantry.",
+    "Allergen:gluten": "Gluten",
+    "Allergen:crustaceans": "Crustaceans",
+    "Allergen:eggs": "Eggs",
+    "Allergen:fish": "Fish",
+    "Allergen:peanuts": "Peanuts",
+    "Allergen:soybeans": "Soybeans",
+    "Allergen:milk": "Milk",
+    "Allergen:nuts": "Tree nuts",
+    "Allergen:celery": "Celery",
+    "Allergen:mustard": "Mustard",
+    "Allergen:sesame-seeds": "Sesame seeds",
+    "Allergen:sulphur-dioxide-and-sulphites": "Sulphur dioxide and sulphites",
+    "Allergen:lupin": "Lupin",
+    "Allergen:molluscs": "Molluscs"
   }
 }
