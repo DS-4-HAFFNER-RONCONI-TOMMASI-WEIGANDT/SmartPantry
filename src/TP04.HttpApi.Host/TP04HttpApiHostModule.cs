@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -177,6 +179,38 @@ public class TP04HttpApiHostModule : AbpModule
         {
             options.IsDynamicClaimsEnabled = true;
         });
+
+        // TP final: sin token, /api/... respondía 302 hacia /Account/Login. Swagger y
+        // Angular ya recibían 401 porque mandan X-Requested-With, pero curl, Postman o
+        // cualquier otro cliente recibían una redirección a una página HTML. En /api se
+        // responde 401 (sin autenticar) o 403 (sin permiso); el resto de las rutas
+        // (páginas MVC de login y cuenta) conserva el comportamiento anterior de ABP.
+        context.Services.ConfigureApplicationCookie(options =>
+        {
+            var defaultRedirectToLogin = options.Events.OnRedirectToLogin;
+            var defaultRedirectToAccessDenied = options.Events.OnRedirectToAccessDenied;
+
+            options.Events.OnRedirectToLogin = redirectContext =>
+                IsApiRequest(redirectContext.Request)
+                    ? WriteStatusCode(redirectContext.Response, StatusCodes.Status401Unauthorized)
+                    : defaultRedirectToLogin(redirectContext);
+
+            options.Events.OnRedirectToAccessDenied = redirectContext =>
+                IsApiRequest(redirectContext.Request)
+                    ? WriteStatusCode(redirectContext.Response, StatusCodes.Status403Forbidden)
+                    : defaultRedirectToAccessDenied(redirectContext);
+        });
+    }
+
+    private static bool IsApiRequest(HttpRequest request)
+    {
+        return request.Path.StartsWithSegments("/api");
+    }
+
+    private static Task WriteStatusCode(HttpResponse response, int statusCode)
+    {
+        response.StatusCode = statusCode;
+        return Task.CompletedTask;
     }
 
     private void ConfigureUrls(IConfiguration configuration)

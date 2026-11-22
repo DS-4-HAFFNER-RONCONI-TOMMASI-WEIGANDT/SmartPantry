@@ -10,6 +10,9 @@
     "LongWelcomeMessage": "Bienvenido a la aplicacion. Este es un proyecto de inicio basado en el marco ABP. Para obtener mas informacion, visite",
     "Date": "Fecha",
     "Permission:Dashboard": "Panel de control",
+    "Permission:Products.Manage": "Administrar productos internos (editar y borrar)",
+    "Permission:IntegrationMetrics": "Métricas de integración externa",
+    "Permission:AuditLogs": "Registros de auditoría",
     "Menu:Dashboard": "Panel de control",
     "Menu:HomePage": "Página de inicio",
     "Dashboard": "Panel de control",
@@ -72,6 +75,20 @@
     "Pantry:DeleteConfirmationMessage": "Se eliminará '{0}' de su despensa. Esta acción no se puede deshacer.",
     "Pantry:SavedSuccessfully": "Cambios guardados.",
     "Pantry:ConsumedSuccessfully": "'{0}' se marcó como consumido.",
-    "Pantry:DeletedSuccessfully": "El producto se eliminó de su despensa."
+    "Pantry:DeletedSuccessfully": "El producto se eliminó de su despensa.",
+    "Allergen:gluten": "Gluten",
+    "Allergen:crustaceans": "Crustáceos",
+    "Allergen:eggs": "Huevos",
+    "Allergen:fish": "Pescado",
+    "Allergen:peanuts": "Maní",
+    "Allergen:soybeans": "Soja",
+    "Allergen:milk": "Leche",
+    "Allergen:nuts": "Frutos secos",
+    "Allergen:celery": "Apio",
+    "Allergen:mustard": "Mostaza",
+    "Allergen:sesame-seeds": "Sésamo",
+    "Allergen:sulphur-dioxide-and-sulphites": "Dióxido de azufre y sulfitos",
+    "Allergen:lupin": "Lupino (altramuz)",
+    "Allergen:molluscs": "Moluscos"
   }
 }

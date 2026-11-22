@@ -2809,66 +2809,6 @@
             }
           ],
           "actions": {
-            "GetAsyncById": {
-              "uniqueName": "GetAsyncById",
-              "name": "GetAsync",
-              "httpMethod": "GET",
-              "url": "api/app/pantry-item/{id}",
-              "supportedVersions": [],
-              "parametersOnMethod": [
-                {
-                  "name": "id",
-                  "typeAsString": "System.Guid, System.Private.CoreLib",
-                  "type": "System.Guid",
-                  "typeSimple": "string",
-                  "isOptional": false,
-                  "defaultValue": null,
-                  "summary": null,
-                  "description": null,
-                  "displayName": null
-                }
-              ],
-              "parameters": [
-                {
-                  "nameOnMethod": "id",
-                  "name": "id",
-                  "jsonName": null,
-                  "type": "System.Guid",
-                  "typeSimple": "string",
-                  "isOptional": false,
-                  "defaultValue": null,
-                  "constraintTypes": [],
-                  "bindingSourceId": "Path",
-                  "descriptorName": "",
-                  "summary": null,
-                  "description": null,
-                  "displayName": null
-                }
-              ],
-              "returnValue": {
-                "type": "TP04.PantryItems.PantryItemDto",
-                "typeSimple": "TP04.PantryItems.PantryItemDto",
-                "summary": null,
-                "contentTypes": [
-                  "text/plain",
-                  "application/json",
-                  "text/json"
-                ],
-                "isRemoteStream": false
-              },
-              "allowAnonymous": false,
-              "authorizeDatas": [
-                {
-                  "policy": null,
-                  "roles": null
-                }
-              ],
-              "implementFrom": "TP04.PantryItems.IPantryItemAppService",
-              "summary": null,
-              "remarks": null,
-              "description": null,
-              "displayName": null
-            },
             "GetListAsyncByInput": {
               "uniqueName": "GetListAsyncByInput",
               "name": "GetListAsync",
@@ -2953,6 +2893,66 @@
               "returnValue": {
                 "type": "Volo.Abp.Application.Dtos.PagedResultDto<TP04.PantryItems.PantryItemDto>",
                 "typeSimple": "Volo.Abp.Application.Dtos.PagedResultDto<TP04.PantryItems.PantryItemDto>",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": null,
+                  "roles": null
+                }
+              ],
+              "implementFrom": "TP04.PantryItems.IPantryItemAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "GetAsyncById": {
+              "uniqueName": "GetAsyncById",
+              "name": "GetAsync",
+              "httpMethod": "GET",
+              "url": "api/app/pantry-item/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "id",
+                  "name": "id",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "TP04.PantryItems.PantryItemDto",
+                "typeSimple": "TP04.PantryItems.PantryItemDto",
                 "summary": null,
                 "contentTypes": [
                   "text/plain",
@@ -3384,208 +3384,6 @@
             }
           ],
           "actions": {
-            "CreateAsyncByInput": {
-              "uniqueName": "CreateAsyncByInput",
-              "name": "CreateAsync",
-              "httpMethod": "POST",
-              "url": "api/app/product",
-              "supportedVersions": [],
-              "parametersOnMethod": [
-                {
-                  "name": "input",
-                  "typeAsString": "TP04.Products.CreateProductDto, TP04.Application.Contracts",
-                  "type": "TP04.Products.CreateProductDto",
-                  "typeSimple": "TP04.Products.CreateProductDto",
-                  "isOptional": false,
-                  "defaultValue": null,
-                  "summary": null,
-                  "description": null,
-                  "displayName": null
-                }
-              ],
-              "parameters": [
-                {
-                  "nameOnMethod": "input",
-                  "name": "input",
-                  "jsonName": null,
-                  "type": "TP04.Products.CreateProductDto",
-                  "typeSimple": "TP04.Products.CreateProductDto",
-                  "isOptional": false,
-                  "defaultValue": null,
-                  "constraintTypes": null,
-                  "bindingSourceId": "Body",
-                  "descriptorName": "",
-                  "summary": null,
-                  "description": null,
-                  "displayName": null
-                }
-              ],
-              "returnValue": {
-                "type": "TP04.Products.ProductDto",
-                "typeSimple": "TP04.Products.ProductDto",
-                "summary": null,
-                "contentTypes": [
-                  "text/plain",
-                  "application/json",
-                  "text/json"
-                ],
-                "isRemoteStream": false
-              },
-              "allowAnonymous": false,
-              "authorizeDatas": [
-                {
-                  "policy": null,
-                  "roles": null
-                }
-              ],
-              "implementFrom": "Volo.Abp.Application.Services.ICreateAppService<TP04.Products.ProductDto,TP04.Products.CreateProductDto>",
-              "summary": null,
-              "remarks": null,
-              "description": null,
-              "displayName": null
-            },
-            "UpdateAsyncByIdAndInput": {
-              "uniqueName": "UpdateAsyncByIdAndInput",
-              "name": "UpdateAsync",
-              "httpMethod": "PUT",
-              "url": "api/app/product/{id}",
-              "supportedVersions": [],
-              "parametersOnMethod": [
-                {
-                  "name": "id",
-                  "typeAsString": "System.Guid, System.Private.CoreLib",
-                  "type": "System.Guid",
-                  "typeSimple": "string",
-                  "isOptional": false,
-                  "defaultValue": null,
-                  "summary": null,
-                  "description": null,
-                  "displayName": null
-                },
-                {
-                  "name": "input",
-                  "typeAsString": "TP04.Products.UpdateProductDto, TP04.Application.Contracts",
-                  "type": "TP04.Products.UpdateProductDto",
-                  "typeSimple": "TP04.Products.UpdateProductDto",
-                  "isOptional": false,
-                  "defaultValue": null,
-                  "summary": null,
-                  "description": null,
-                  "displayName": null
-                }
-              ],
-              "parameters": [
-                {
-                  "nameOnMethod": "id",
-                  "name": "id",
-                  "jsonName": null,
-                  "type": "System.Guid",
-                  "typeSimple": "string",
-                  "isOptional": false,
-                  "defaultValue": null,
-                  "constraintTypes": [],
-                  "bindingSourceId": "Path",
-                  "descriptorName": "",
-                  "summary": null,
-                  "description": null,
-                  "displayName": null
-                },
-                {
-                  "nameOnMethod": "input",
-                  "name": "input",
-                  "jsonName": null,
-                  "type": "TP04.Products.UpdateProductDto",
-                  "typeSimple": "TP04.Products.UpdateProductDto",
-                  "isOptional": false,
-                  "defaultValue": null,
-                  "constraintTypes": null,
-                  "bindingSourceId": "Body",
-                  "descriptorName": "",
-                  "summary": null,
-                  "description": null,
-                  "displayName": null
-                }
-              ],
-              "returnValue": {
-                "type": "TP04.Products.ProductDto",
-                "typeSimple": "TP04.Products.ProductDto",
-                "summary": null,
-                "contentTypes": [
-                  "text/plain",
-                  "application/json",
-                  "text/json"
-                ],
-                "isRemoteStream": false
-              },
-              "allowAnonymous": false,
-              "authorizeDatas": [
-                {
-                  "policy": null,
-                  "roles": null
-                }
-              ],
-              "implementFrom": "Volo.Abp.Application.Services.IUpdateAppService<TP04.Products.ProductDto,System.Guid,TP04.Products.UpdateProductDto>",
-              "summary": null,
-              "remarks": null,
-              "description": null,
-              "displayName": null
-            },
-            "DeleteAsyncById": {
-              "uniqueName": "DeleteAsyncById",
-              "name": "DeleteAsync",
-              "httpMethod": "DELETE",
-              "url": "api/app/product/{id}",
-              "supportedVersions": [],
-              "parametersOnMethod": [
-                {
-                  "name": "id",
-                  "typeAsString": "System.Guid, System.Private.CoreLib",
-                  "type": "System.Guid",
-                  "typeSimple": "string",
-                  "isOptional": false,
-                  "defaultValue": null,
-                  "summary": null,
-                  "description": null,
-                  "displayName": null
-                }
-              ],
-              "parameters": [
-                {
-                  "nameOnMethod": "id",
-                  "name": "id",
-                  "jsonName": null,
-                  "type": "System.Guid",
-                  "typeSimple": "string",
-                  "isOptional": false,
-                  "defaultValue": null,
-                  "constraintTypes": [],
-                  "bindingSourceId": "Path",
-                  "descriptorName": "",
-                  "summary": null,
-                  "description": null,
-                  "displayName": null
-                }
-              ],
-              "returnValue": {
-                "type": "System.Void",
-                "typeSimple": "System.Void",
-                "summary": null,
-                "contentTypes": null,
-                "isRemoteStream": false
-              },
-              "allowAnonymous": false,
-              "authorizeDatas": [
-                {
-                  "policy": null,
-                  "roles": null
-                }
-              ],
-              "implementFrom": "Volo.Abp.Application.Services.IDeleteAppService<System.Guid>",
-              "summary": null,
-              "remarks": null,
-              "description": null,
-              "displayName": null
-            },
             "GetAsyncById": {
               "uniqueName": "GetAsyncById",
               "name": "GetAsync",
@@ -3731,6 +3529,208 @@
                 }
               ],
               "implementFrom": "Volo.Abp.Application.Services.IReadOnlyAppService<TP04.Products.ProductDto,TP04.Products.ProductDto,System.Guid,Volo.Abp.Application.Dtos.PagedAndSortedResultRequestDto>",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "DeleteAsyncById": {
+              "uniqueName": "DeleteAsyncById",
+              "name": "DeleteAsync",
+              "httpMethod": "DELETE",
+              "url": "api/app/product/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "id",
+                  "name": "id",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "System.Void",
+                "typeSimple": "System.Void",
+                "summary": null,
+                "contentTypes": null,
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": null,
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Volo.Abp.Application.Services.IDeleteAppService<System.Guid>",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "CreateAsyncByInput": {
+              "uniqueName": "CreateAsyncByInput",
+              "name": "CreateAsync",
+              "httpMethod": "POST",
+              "url": "api/app/product",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "TP04.Products.CreateProductDto, TP04.Application.Contracts",
+                  "type": "TP04.Products.CreateProductDto",
+                  "typeSimple": "TP04.Products.CreateProductDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "TP04.Products.CreateProductDto",
+                  "typeSimple": "TP04.Products.CreateProductDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "TP04.Products.ProductDto",
+                "typeSimple": "TP04.Products.ProductDto",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": null,
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Volo.Abp.Application.Services.ICreateAppService<TP04.Products.ProductDto,TP04.Products.CreateProductDto>",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "UpdateAsyncByIdAndInput": {
+              "uniqueName": "UpdateAsyncByIdAndInput",
+              "name": "UpdateAsync",
+              "httpMethod": "PUT",
+              "url": "api/app/product/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "name": "input",
+                  "typeAsString": "TP04.Products.UpdateProductDto, TP04.Application.Contracts",
+                  "type": "TP04.Products.UpdateProductDto",
+                  "typeSimple": "TP04.Products.UpdateProductDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "id",
+                  "name": "id",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "TP04.Products.UpdateProductDto",
+                  "typeSimple": "TP04.Products.UpdateProductDto",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "TP04.Products.ProductDto",
+                "typeSimple": "TP04.Products.ProductDto",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": null,
+                  "roles": null
+                }
+              ],
+              "implementFrom": "Volo.Abp.Application.Services.IUpdateAppService<TP04.Products.ProductDto,System.Guid,TP04.Products.UpdateProductDto>",
               "summary": null,
               "remarks": null,
               "description": null,
@@ -9192,6 +9192,86 @@
           "jsonName": null,
           "type": "System.String",
           "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "Categories",
+          "jsonName": null,
+          "type": "[System.String]",
+          "typeSimple": "[string]",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "IngredientsText",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "AllergenTags",
+          "jsonName": null,
+          "type": "[System.String]",
+          "typeSimple": "[string]",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "NutriScore",
+          "jsonName": null,
+          "type": "System.String",
+          "typeSimple": "string",
+          "isRequired": false,
+          "minLength": null,
+          "maxLength": null,
+          "minimum": null,
+          "maximum": null,
+          "regex": null,
+          "isNullable": true,
+          "summary": null,
+          "description": null,
+          "displayName": null
+        },
+        {
+          "name": "NovaGroup",
+          "jsonName": null,
+          "type": "System.Int32?",
+          "typeSimple": "number?",
           "isRequired": false,
           "minLength": null,
           "maxLength": null,

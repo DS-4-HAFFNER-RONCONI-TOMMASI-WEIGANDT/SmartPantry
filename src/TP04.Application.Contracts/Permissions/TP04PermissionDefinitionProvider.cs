@@ -20,6 +20,13 @@ public class TP04PermissionDefinitionProvider : PermissionDefinitionProvider
         authorsPermission.AddChild(TP04Permissions.Authors.Create, L("Permission:Authors.Create"));
         authorsPermission.AddChild(TP04Permissions.Authors.Edit, L("Permission:Authors.Edit"));
         authorsPermission.AddChild(TP04Permissions.Authors.Delete, L("Permission:Authors.Delete"));
+
+        // TP final: permisos de administración. El rol admin los recibe al correr
+        // DbMigrator (el seed de permisos de ABP otorga al admin todos los definidos).
+        myGroup.AddPermission(TP04Permissions.Products.Manage, L("Permission:Products.Manage"));
+        myGroup.AddPermission(TP04Permissions.IntegrationMetrics.Default, L("Permission:IntegrationMetrics"));
+        myGroup.AddPermission(TP04Permissions.AuditLogs.Default, L("Permission:AuditLogs"));
+
         //Define your own permissions here. Example:
         //myGroup.AddPermission(TP04Permissions.MyPermission1, L("Permission:MyPermission1"));
     }
