@@ -48,11 +48,40 @@ public partial class TP04AuthorToAuthorExcelDtoMapper : MapperBase<Author, Autho
     public override partial void Map(Author source, AuthorExcelDto destination);
 }
 
-// NUEVO MAPPER PARA PRODUCT
-[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
-public partial class TP04ProductToProductDtoMapper : MapperBase<Product, ProductDto>
+// Mapper de Product -> ProductDto (lo usa el ObjectMapper de ABP en ProductAppService).
+//
+// TP final (RF-07 / RF-08): se escribe a mano en lugar de generarlo con Mapperly.
+// En la entidad, Categories y AllergenTags son texto separado por comas y en el DTO
+// son listas: Mapperly no sabe convertir uno en otro, así que se usan los métodos
+// del dominio GetCategories() y GetAllergenTags(). Mismo estilo que el mapeo manual
+// de PantryItemAppService.MapToDto.
+public class TP04ProductToProductDtoMapper : MapperBase<Product, ProductDto>
 {
-    public override partial ProductDto Map(Product source);
+    public override ProductDto Map(Product source)
+    {
+        var destination = new ProductDto();
+        Map(source, destination);
+        return destination;
+    }
 
-    public override partial void Map(Product source, ProductDto destination);
+    public override void Map(Product source, ProductDto destination)
+    {
+        destination.Id = source.Id;
+        destination.CreationTime = source.CreationTime;
+        destination.CreatorId = source.CreatorId;
+        destination.LastModificationTime = source.LastModificationTime;
+        destination.LastModifierId = source.LastModifierId;
+
+        destination.Barcode = source.Barcode;
+        destination.Name = source.Name;
+        destination.Brand = source.Brand;
+
+        destination.ImageUrl = source.ImageUrl;
+        destination.Categories = source.GetCategories();
+        destination.IngredientsText = source.IngredientsText;
+        destination.AllergenTags = source.GetAllergenTags();
+        destination.NutriScore = source.NutriScore;
+        destination.NovaGroup = source.NovaGroup;
+        destination.ExternalDataUpdatedAt = source.ExternalDataUpdatedAt;
+    }
 }
