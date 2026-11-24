@@ -2,9 +2,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using TP04.PantryItems;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Entities;
+using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Modularity;
 using Volo.Abp.Validation;
 using Xunit;
@@ -15,10 +17,12 @@ namespace TP04.Products
         where TStartupModule : IAbpModule
     {
         private readonly IProductAppService _productAppService;
+        private readonly IRepository<PantryItem, Guid> _pantryItemRepository;
 
         public ProductAppService_Tests()
         {
             _productAppService = GetRequiredService<IProductAppService>();
+            _pantryItemRepository = GetRequiredService<IRepository<PantryItem, Guid>>();
         }
 
         // ---------------------------------------------------------------------
@@ -249,6 +253,32 @@ namespace TP04.Products
                     Name = "Inexistente"
                 });
             });
+        }
+
+        // ---------------------------------------------------------------------
+        // Producto en uso (TP final, RF-08)
+        // El borrado de un producto sin uso ya lo cubre
+        // Should_Create_List_Update_Get_And_Delete_Product.
+        // ---------------------------------------------------------------------
+
+        [Fact]
+        public async Task DeleteAsync_Should_Throw_ProductInUse_And_Keep_Product_When_It_Is_In_A_Pantry()
+        {
+            var product = await CreateProductAsync("7790000000500", "Mermelada");
+            await _pantryItemRepository.InsertAsync(
+                new PantryItem(Guid.NewGuid(), Guid.NewGuid(), product.Id),
+                autoSave: true);
+
+            var exception = await Should.ThrowAsync<BusinessException>(async () =>
+            {
+                await _productAppService.DeleteAsync(product.Id);
+            });
+
+            exception.Code.ShouldBe(TP04DomainErrorCodes.ProductInUse);
+
+            // El producto no se borró.
+            var stillThere = await _productAppService.GetAsync(product.Id);
+            stillThere.Barcode.ShouldBe("7790000000500");
         }
 
         // ---------------------------------------------------------------------

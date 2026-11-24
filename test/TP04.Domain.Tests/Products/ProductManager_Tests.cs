@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TP04.PantryItems;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Modularity;
@@ -16,11 +17,13 @@ namespace TP04.Products
     {
         private readonly ProductManager _productManager;
         private readonly IRepository<Product, Guid> _productRepository;
+        private readonly IRepository<PantryItem, Guid> _pantryItemRepository;
 
         public ProductManager_Tests()
         {
             _productManager = GetRequiredService<ProductManager>();
             _productRepository = GetRequiredService<IRepository<Product, Guid>>();
+            _pantryItemRepository = GetRequiredService<IRepository<PantryItem, Guid>>();
         }
 
         // ---------------------------------------------------------------------
@@ -286,6 +289,77 @@ namespace TP04.Products
         }
 
         // ---------------------------------------------------------------------
+        // Producto en uso (TP final, RF-08)
+        // ---------------------------------------------------------------------
+
+        [Fact]
+        public async Task EnsureNotInUseAsync_Should_Not_Throw_When_Product_Is_Not_In_Any_Pantry()
+        {
+            var product = await CreateAndInsertAsync("7790000000300", "Lentejas");
+
+            await Should.NotThrowAsync(() => EnsureNotInUseInUnitOfWorkAsync(product.Id));
+        }
+
+        [Fact]
+        public async Task EnsureNotInUseAsync_Should_Throw_ProductInUse_When_Product_Is_In_A_Pantry()
+        {
+            var product = await CreateAndInsertAsync("7790000000310", "Polenta");
+            await InsertPantryItemAsync(Guid.NewGuid(), product.Id);
+
+            var exception = await Should.ThrowAsync<BusinessException>(
+                () => EnsureNotInUseInUnitOfWorkAsync(product.Id));
+
+            exception.Code.ShouldBe(TP04DomainErrorCodes.ProductInUse);
+        }
+
+        [Fact]
+        public async Task EnsureNotInUseAsync_Should_Throw_ProductInUse_When_Product_Is_In_Several_Pantries()
+        {
+            // Dos usuarios con el mismo producto: la consulta tiene que contemplar
+            // más de un ítem (FindAsync con condición fallaría con dos resultados).
+            var product = await CreateAndInsertAsync("7790000000320", "Garbanzos");
+            await InsertPantryItemAsync(Guid.NewGuid(), product.Id);
+            await InsertPantryItemAsync(Guid.NewGuid(), product.Id);
+
+            var exception = await Should.ThrowAsync<BusinessException>(
+                () => EnsureNotInUseInUnitOfWorkAsync(product.Id));
+
+            exception.Code.ShouldBe(TP04DomainErrorCodes.ProductInUse);
+        }
+
+        [Fact]
+        public async Task EnsureNotInUseAsync_Should_Throw_ProductInUse_When_Only_A_Consumed_Item_Uses_It()
+        {
+            // Regla de negocio 6: el consumido es historial y sigue referenciando al producto.
+            var product = await CreateAndInsertAsync("7790000000330", "Avena");
+            var item = new PantryItem(Guid.NewGuid(), Guid.NewGuid(), product.Id);
+            item.MarkAsConsumed();
+            await _pantryItemRepository.InsertAsync(item, autoSave: true);
+
+            var exception = await Should.ThrowAsync<BusinessException>(
+                () => EnsureNotInUseInUnitOfWorkAsync(product.Id));
+
+            exception.Code.ShouldBe(TP04DomainErrorCodes.ProductInUse);
+        }
+
+        // ---------------------------------------------------------------------
+
+        /// <summary>
+        /// EnsureNotInUseAsync arma la consulta con GetQueryableAsync, que necesita una
+        /// Unit of Work abierta mientras se ejecuta. En la aplicación la abre el AppService;
+        /// acá, como se llama al Manager directo, la abre la prueba.
+        /// </summary>
+        private Task EnsureNotInUseInUnitOfWorkAsync(Guid productId)
+        {
+            return WithUnitOfWorkAsync(() => _productManager.EnsureNotInUseAsync(productId));
+        }
+
+        private async Task InsertPantryItemAsync(Guid ownerId, Guid productId)
+        {
+            await _pantryItemRepository.InsertAsync(
+                new PantryItem(Guid.NewGuid(), ownerId, productId),
+                autoSave: true);
+        }
 
         /// <summary>
         /// Hace lo mismo que hará el AppService al guardar desde el catálogo externo:

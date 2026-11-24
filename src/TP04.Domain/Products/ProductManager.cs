@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using TP04.PantryItems;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Domain.Services;
@@ -15,14 +17,21 @@ namespace TP04.Products
     /// Esta regla necesita consultar el repositorio (¿ya existe ese barcode?), y un
     /// Aggregate Root no debería depender de un repositorio. Por eso es un Domain
     /// Service: coordina una regla que no pertenece a un único Aggregate.
+    ///
+    /// TP final: también la regla "no se puede borrar un producto en uso", que
+    /// consulta otro Aggregate (PantryItem).
     /// </summary>
     public class ProductManager : DomainService
     {
         private readonly IRepository<Product, Guid> _productRepository;
+        private readonly IRepository<PantryItem, Guid> _pantryItemRepository;
 
-        public ProductManager(IRepository<Product, Guid> productRepository)
+        public ProductManager(
+            IRepository<Product, Guid> productRepository,
+            IRepository<PantryItem, Guid> pantryItemRepository)
         {
             _productRepository = productRepository;
+            _pantryItemRepository = pantryItemRepository;
         }
 
         public async Task<Product> CreateAsync(string barcode, string name, string? brand = null)
@@ -108,6 +117,30 @@ namespace TP04.Products
             product.UpdateExternalData(externalData, DateTime.UtcNow);
 
             return new ExternalProductSaveResult(product, alreadyExisted: false);
+        }
+
+        /// <summary>
+        /// TP final (RF-08): un producto que está en alguna despensa no se puede borrar.
+        ///
+        /// La base ya lo impide (FK Restrict entre PantryItems y Products), pero ese
+        /// rechazo llega como un error de base de datos y la API responde 500. Con esta
+        /// verificación previa el usuario recibe un error de negocio claro.
+        ///
+        /// Cuentan también los ítems consumidos: son historial y no se borran solos
+        /// (regla de negocio 6), así que siguen referenciando al producto.
+        /// </summary>
+        public async Task EnsureNotInUseAsync(Guid productId)
+        {
+            // Se cuenta en vez de usar FindAsync(condición): FindAsync espera un único
+            // resultado y falla si el producto está en varias despensas.
+            var itemQuery = await _pantryItemRepository.GetQueryableAsync();
+            var itemsUsingProduct = await AsyncExecuter.CountAsync(
+                itemQuery.Where(i => i.ProductId == productId));
+
+            if (itemsUsingProduct > 0)
+            {
+                throw new BusinessException(TP04DomainErrorCodes.ProductInUse);
+            }
         }
 
         private async Task CheckBarcodeIsUniqueAsync(string barcode, Guid? excludedProductId = null)

@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Shouldly;
+using TP04.PantryItems;
 using TP04.Permissions;
 using TP04.Products;
 using Volo.Abp.Application.Dtos;
@@ -143,6 +144,23 @@ public class ProductAuthorization_Tests : TP04TestBase<SecurityTestModule>
         (await ProductExistsAsync(productId)).ShouldBeTrue();
     }
 
+    [Fact]
+    public async Task DeleteAsync_Should_Throw_AbpAuthorizationException_Not_ProductInUse_When_User_Lacks_Manage_Permission()
+    {
+        // El permiso se controla antes que la regla "producto en uso": un usuario sin
+        // Products.Manage no tiene que poder averiguar si el producto está en alguna despensa.
+        var productId = await InsertProductAsync("7790000030011");
+        await InsertPantryItemAsync(productId);
+
+        using (_principalAccessor.Change(SecurityTestPrincipals.User()))
+        {
+            await Should.ThrowAsync<AbpAuthorizationException>(
+                () => _productAppService.DeleteAsync(productId));
+        }
+
+        (await ProductExistsAsync(productId)).ShouldBeTrue();
+    }
+
     // ---------- Admin con Products.Manage ----------
 
     [Fact]
@@ -194,6 +212,14 @@ public class ProductAuthorization_Tests : TP04TestBase<SecurityTestModule>
             await _productRepository.InsertAsync(product, autoSave: true);
             return product.Id;
         });
+    }
+
+    /// <summary>Pone el producto en la despensa de otro usuario, por repositorio.</summary>
+    private Task InsertPantryItemAsync(Guid productId)
+    {
+        return WithUnitOfWorkAsync(() =>
+            GetRequiredService<IRepository<PantryItem, Guid>>()
+                .InsertAsync(new PantryItem(Guid.NewGuid(), Guid.NewGuid(), productId), autoSave: true));
     }
 
     private Task<bool> ProductExistsAsync(Guid id)
