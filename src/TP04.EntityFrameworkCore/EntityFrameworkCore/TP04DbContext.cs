@@ -131,6 +131,27 @@ public class TP04DbContext :
 
             b.Property(x => x.Brand)
                 .HasMaxLength(ProductConsts.MaxBrandLength);
+
+            // TP final (RF-07 / RF-08): datos externos guardados desde Open Food Facts.
+            // Todos opcionales (null = no informado, RF-09); largos desde ProductConsts.
+            b.Property(x => x.ImageUrl)
+                .HasMaxLength(ProductConsts.MaxImageUrlLength);
+
+            b.Property(x => x.Categories)
+                .HasMaxLength(ProductConsts.MaxCategoriesLength);
+
+            b.Property(x => x.IngredientsText)
+                .HasMaxLength(ProductConsts.MaxIngredientsTextLength);
+
+            b.Property(x => x.AllergenTags)
+                .HasMaxLength(ProductConsts.MaxAllergenTagsLength);
+
+            b.Property(x => x.NutriScore)
+                .HasMaxLength(ProductConsts.NutriScoreLength);
+
+            b.Property(x => x.NovaGroup);
+
+            b.Property(x => x.ExternalDataUpdatedAt);
         });
 
         // TP08: ítem de despensa (propietario, producto, estado, vencimiento). TP10: cantidad y unidad.
