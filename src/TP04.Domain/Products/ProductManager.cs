@@ -67,6 +67,49 @@ namespace TP04.Products
             product.Update(normalizedBarcode, name, brand);
         }
 
+        /// <summary>
+        /// RF-08: guarda un producto de Open Food Facts en el catálogo interno sin
+        /// duplicar el código de barras (regla de negocio 4).
+        ///
+        ///   - Si ya existe un producto con ese código: se actualizan solo sus datos
+        ///     externos. Nombre y marca se conservan porque pueden haber sido corregidos
+        ///     a mano (TP06).
+        ///   - Si no existe: se crea. Si el proveedor no informa el nombre, se usa el
+        ///     código de barras como nombre visible (Name es obligatorio y no se inventa
+        ///     un nombre, RF-09).
+        ///
+        /// Como CreateAsync, no inserta ni actualiza en el repositorio: lo hace quien
+        /// llama, según <see cref="ExternalProductSaveResult.AlreadyExisted"/>. El índice
+        /// único de la base sigue de respaldo si dos usuarios guardan el mismo código a
+        /// la vez.
+        /// </summary>
+        public async Task<ExternalProductSaveResult> SaveFromExternalAsync(
+            string barcode,
+            string? name,
+            string? brand,
+            ProductExternalData externalData)
+        {
+            Check.NotNull(externalData, nameof(externalData));
+
+            // Se normaliza antes de buscar, igual que en CreateAsync: "  123  " y "123"
+            // son el mismo producto.
+            var normalizedBarcode = Product.NormalizeBarcode(barcode);
+
+            var existing = await _productRepository.FindAsync(p => p.Barcode == normalizedBarcode);
+            if (existing != null)
+            {
+                existing.UpdateExternalData(externalData, Clock.Now);
+                return new ExternalProductSaveResult(existing, alreadyExisted: true);
+            }
+
+            var visibleName = string.IsNullOrWhiteSpace(name) ? normalizedBarcode : name;
+
+            var product = new Product(GuidGenerator.Create(), normalizedBarcode, visibleName, brand);
+            product.UpdateExternalData(externalData, Clock.Now);
+
+            return new ExternalProductSaveResult(product, alreadyExisted: false);
+        }
+
         private async Task CheckBarcodeIsUniqueAsync(string barcode, Guid? excludedProductId = null)
         {
             var existing = await _productRepository.FindAsync(p => p.Barcode == barcode);

@@ -48,7 +48,10 @@ namespace TP04.Products
         /// <summary>Grupo NOVA de 1 a 4.</summary>
         public virtual int? NovaGroup { get; private set; }
 
-        /// <summary>Última vez que se guardaron los datos externos (UTC). null = nunca.</summary>
+        /// <summary>
+        /// Última vez que se guardaron los datos externos. null = nunca.
+        /// Se toma del reloj de ABP (IClock), el mismo que usa la auditoría (CreationTime).
+        /// </summary>
         public virtual DateTime? ExternalDataUpdatedAt { get; private set; }
 
         // Requerido por EF Core.

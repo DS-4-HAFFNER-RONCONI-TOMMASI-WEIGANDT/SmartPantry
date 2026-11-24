@@ -1,5 +1,6 @@
 ﻿using Shouldly;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
@@ -154,6 +155,171 @@ namespace TP04.Products
         }
 
         // ---------------------------------------------------------------------
+        // Guardar desde el catálogo externo (TP final, RF-08)
+        // Integración: la clase concreta corre contra SQLite (EfCoreProductManager_Tests).
+        // ---------------------------------------------------------------------
+
+        [Fact]
+        public async Task SaveFromExternalAsync_Should_Create_Product_And_Persist_Data_When_Barcode_Is_New()
+        {
+            var result = await _productManager.SaveFromExternalAsync(
+                "3017620422003", "Nutella", "Ferrero", ExternalData());
+            await SaveResultAsync(result);
+
+            result.AlreadyExisted.ShouldBeFalse();
+
+            // Se relee de la base para comprobar que todo quedó guardado.
+            var saved = await _productRepository.GetAsync(result.Product.Id);
+            saved.Barcode.ShouldBe("3017620422003");
+            saved.Name.ShouldBe("Nutella");
+            saved.Brand.ShouldBe("Ferrero");
+            saved.ImageUrl.ShouldBe("https://images.openfoodfacts.org/front.jpg");
+            saved.GetCategories().ShouldBe(new[] { "Desayunos", "Untables" });
+            saved.IngredientsText.ShouldBe("Azúcar, aceite vegetal, avellanas");
+            saved.GetAllergenTags().ShouldBe(new[] { "en:milk", "en:nuts" });
+            saved.NutriScore.ShouldBe("e");
+            saved.NovaGroup.ShouldBe(4);
+            saved.ExternalDataUpdatedAt.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task SaveFromExternalAsync_Should_Keep_A_Single_Product_When_Saved_Twice()
+        {
+            // Regla de negocio 4 / RF-08: guardar dos veces el mismo código no duplica.
+            var first = await _productManager.SaveFromExternalAsync(
+                "7790000000200", "Galletitas", "Marca G", ExternalData());
+            await SaveResultAsync(first);
+
+            var second = await _productManager.SaveFromExternalAsync(
+                "7790000000200", "Galletitas", "Marca G", new ProductExternalData { NutriScore = "c" });
+            await SaveResultAsync(second);
+
+            second.AlreadyExisted.ShouldBeTrue();
+            second.Product.Id.ShouldBe(first.Product.Id);
+            (await CountByBarcodeAsync("7790000000200")).ShouldBe(1);
+
+            // Los datos externos se reemplazan por los de la segunda consulta.
+            var saved = await _productRepository.GetAsync(first.Product.Id);
+            saved.NutriScore.ShouldBe("c");
+            saved.ImageUrl.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task SaveFromExternalAsync_Should_Not_Duplicate_When_Barcode_Has_Spaces()
+        {
+            var first = await _productManager.SaveFromExternalAsync(
+                "7790000000210", "Fideos", null, ExternalData());
+            await SaveResultAsync(first);
+
+            var second = await _productManager.SaveFromExternalAsync(
+                "  7790000000210  ", "Fideos", null, ExternalData());
+            await SaveResultAsync(second);
+
+            second.AlreadyExisted.ShouldBeTrue();
+            (await CountByBarcodeAsync("7790000000210")).ShouldBe(1);
+        }
+
+        [Fact]
+        public async Task SaveFromExternalAsync_Should_Update_Product_Created_Manually()
+        {
+            // Un producto cargado a mano (TP05) también cuenta: no se crea otro.
+            var manual = await CreateAndInsertAsync("7790000000220", "Arroz", "Marca A");
+
+            var result = await _productManager.SaveFromExternalAsync(
+                "7790000000220", "Rice", "Brand A", ExternalData());
+            await SaveResultAsync(result);
+
+            result.AlreadyExisted.ShouldBeTrue();
+            result.Product.Id.ShouldBe(manual.Id);
+            (await CountByBarcodeAsync("7790000000220")).ShouldBe(1);
+        }
+
+        [Fact]
+        public async Task SaveFromExternalAsync_Should_Keep_Name_And_Brand_When_Product_Exists()
+        {
+            // El nombre y la marca pueden haber sido corregidos por un admin (TP06):
+            // solo se actualizan los datos externos.
+            await CreateAndInsertAsync("7790000000230", "Yerba Mate Suave", "Marca Corregida");
+
+            var result = await _productManager.SaveFromExternalAsync(
+                "7790000000230", "yerba mate", "marca proveedor", ExternalData());
+            await SaveResultAsync(result);
+
+            var saved = await _productRepository.GetAsync(result.Product.Id);
+            saved.Name.ShouldBe("Yerba Mate Suave");
+            saved.Brand.ShouldBe("Marca Corregida");
+            saved.NutriScore.ShouldBe("e");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("   ")]
+        public async Task SaveFromExternalAsync_Should_Use_Barcode_As_Name_When_Provider_Omits_Name(string? name)
+        {
+            // RF-09: no se inventa un nombre; se muestra el código de barras.
+            var result = await _productManager.SaveFromExternalAsync(
+                " 7790000000240 ", name, null, ExternalData());
+
+            result.Product.Name.ShouldBe("7790000000240");
+            result.Product.Brand.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task SaveFromExternalAsync_Should_Throw_And_Not_Create_When_External_Data_Is_Invalid()
+        {
+            await Should.ThrowAsync<ArgumentException>(async () =>
+            {
+                await _productManager.SaveFromExternalAsync(
+                    "7790000000250", "Gaseosa", null, new ProductExternalData { NovaGroup = 7 });
+            });
+
+            (await CountByBarcodeAsync("7790000000250")).ShouldBe(0);
+        }
+
+        [Fact]
+        public async Task SaveFromExternalAsync_Should_Throw_When_Barcode_Is_Empty()
+        {
+            await Should.ThrowAsync<ArgumentException>(async () =>
+            {
+                await _productManager.SaveFromExternalAsync("   ", "Producto", null, ExternalData());
+            });
+        }
+
+        // ---------------------------------------------------------------------
+
+        /// <summary>
+        /// Hace lo mismo que hará el AppService al guardar desde el catálogo externo:
+        /// inserta si es nuevo y actualiza si ya existía.
+        /// </summary>
+        private async Task SaveResultAsync(ExternalProductSaveResult result)
+        {
+            if (result.AlreadyExisted)
+            {
+                await _productRepository.UpdateAsync(result.Product, autoSave: true);
+            }
+            else
+            {
+                await _productRepository.InsertAsync(result.Product, autoSave: true);
+            }
+        }
+
+        private async Task<int> CountByBarcodeAsync(string barcode)
+        {
+            return (await _productRepository.GetListAsync(p => p.Barcode == barcode)).Count;
+        }
+
+        private static ProductExternalData ExternalData()
+        {
+            return new ProductExternalData
+            {
+                ImageUrl = "https://images.openfoodfacts.org/front.jpg",
+                Categories = new List<string> { "Desayunos", "Untables" },
+                IngredientsText = "Azúcar, aceite vegetal, avellanas",
+                AllergenTags = new List<string> { "en:milk", "en:nuts" },
+                NutriScore = "e",
+                NovaGroup = 4
+            };
+        }
 
         private async Task<Product> CreateAndInsertAsync(string barcode, string name, string? brand = null)
         {
