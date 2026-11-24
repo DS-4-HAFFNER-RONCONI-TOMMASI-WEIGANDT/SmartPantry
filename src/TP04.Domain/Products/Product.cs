@@ -48,10 +48,7 @@ namespace TP04.Products
         /// <summary>Grupo NOVA de 1 a 4.</summary>
         public virtual int? NovaGroup { get; private set; }
 
-        /// <summary>
-        /// Última vez que se guardaron los datos externos. null = nunca.
-        /// Se toma del reloj de ABP (IClock), el mismo que usa la auditoría (CreationTime).
-        /// </summary>
+        /// <summary>Última vez que se guardaron los datos externos (UTC). null = nunca.</summary>
         public virtual DateTime? ExternalDataUpdatedAt { get; private set; }
 
         // Requerido por EF Core.
@@ -135,13 +132,13 @@ namespace TP04.Products
         ///   - lista vacía: informó que no detectó alérgenos;
         ///   - si no, los tags ("en:milk", ...).
         /// </summary>
-        public IReadOnlyList<string>? GetAllergenTags()
+        public List<string>? GetAllergenTags()
         {
             return SplitList(AllergenTags);
         }
 
         /// <summary>Categorías como lista; null si el proveedor no las informó.</summary>
-        public IReadOnlyList<string>? GetCategories()
+        public List<string>? GetCategories()
         {
             return SplitList(Categories);
         }
@@ -182,11 +179,12 @@ namespace TP04.Products
         {
             var normalized = NormalizeOptionalText(imageUrl, nameof(imageUrl), ProductConsts.MaxImageUrlLength);
 
-            // La URL se muestra como imagen en la interfaz: solo se aceptan direcciones
-            // http(s) absolutas, nunca otros esquemas (por ejemplo "javascript:").
+            // Validar entradas (Desarrollo seguro): la URL se muestra como imagen en la
+            // interfaz, así que solo se aceptan direcciones http o https, nunca otros
+            // esquemas (por ejemplo "javascript:").
             if (normalized != null
-                && (!Uri.TryCreate(normalized, UriKind.Absolute, out var uri)
-                    || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
+                && !normalized.StartsWith("http://")
+                && !normalized.StartsWith("https://"))
             {
                 throw new ArgumentException("La imagen del producto debe ser una URL http o https.", nameof(imageUrl));
             }
@@ -213,7 +211,8 @@ namespace TP04.Products
 
         private static int? ValidateNovaGroup(int? novaGroup)
         {
-            if (novaGroup is < ProductConsts.MinNovaGroup or > ProductConsts.MaxNovaGroup)
+            if (novaGroup.HasValue
+                && (novaGroup.Value < ProductConsts.MinNovaGroup || novaGroup.Value > ProductConsts.MaxNovaGroup))
             {
                 throw new ArgumentException(
                     $"El grupo NOVA debe estar entre {ProductConsts.MinNovaGroup} y {ProductConsts.MaxNovaGroup}.",
@@ -224,7 +223,7 @@ namespace TP04.Products
         }
 
         /// <summary>Sin categorías (null o lista vacía) se guarda null: no hay nada que mostrar.</summary>
-        private static string? JoinCategories(IReadOnlyList<string>? categories)
+        private static string? JoinCategories(List<string>? categories)
         {
             var values = NormalizeListValues(categories, nameof(categories), toLowerCase: false);
 
@@ -237,7 +236,7 @@ namespace TP04.Products
         /// A diferencia de las categorías, una lista vacía se guarda como "" y no como null:
         /// "informado sin alérgenos" y "no informado" no significan lo mismo (RF-12).
         /// </summary>
-        private static string? JoinAllergenTags(IReadOnlyList<string>? allergenTags)
+        private static string? JoinAllergenTags(List<string>? allergenTags)
         {
             var values = NormalizeListValues(allergenTags, nameof(allergenTags), toLowerCase: true);
 
@@ -247,10 +246,10 @@ namespace TP04.Products
         }
 
         /// <summary>
-        /// Recorta cada valor, descarta los vacíos y los repetidos. Un valor con coma se
-        /// rechaza porque rompería la lista guardada al volver a separarla.
+        /// Recorta cada valor, descarta los vacíos y los repetidos exactos. Un valor con
+        /// coma se rechaza porque rompería la lista guardada al volver a separarla.
         /// </summary>
-        private static List<string>? NormalizeListValues(IReadOnlyList<string>? values, string parameterName, bool toLowerCase)
+        private static List<string>? NormalizeListValues(List<string>? values, string parameterName, bool toLowerCase)
         {
             if (values is null)
             {
@@ -273,7 +272,7 @@ namespace TP04.Products
                     throw new ArgumentException($"Los valores de la lista no pueden contener \"{ListSeparator}\".", parameterName);
                 }
 
-                if (!result.Contains(normalized, StringComparer.OrdinalIgnoreCase))
+                if (!result.Contains(normalized))
                 {
                     result.Add(normalized);
                 }
@@ -282,14 +281,14 @@ namespace TP04.Products
             return result;
         }
 
-        private static IReadOnlyList<string>? SplitList(string? storedValue)
+        private static List<string>? SplitList(string? storedValue)
         {
             if (storedValue is null)
             {
                 return null;
             }
 
-            return storedValue.Split(ListSeparator, StringSplitOptions.RemoveEmptyEntries);
+            return storedValue.Split(ListSeparator, StringSplitOptions.RemoveEmptyEntries).ToList();
         }
     }
 }

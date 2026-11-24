@@ -15,7 +15,7 @@ namespace TP04.Products
     {
         public string? ImageUrl { get; init; }
 
-        public IReadOnlyList<string>? Categories { get; init; }
+        public List<string>? Categories { get; init; }
 
         public string? IngredientsText { get; init; }
 
@@ -23,7 +23,7 @@ namespace TP04.Products
         /// Tags canónicos, por ejemplo "en:milk". null = no informado; una lista vacía =
         /// informado, sin alérgenos detectados.
         /// </summary>
-        public IReadOnlyList<string>? AllergenTags { get; init; }
+        public List<string>? AllergenTags { get; init; }
 
         /// <summary>Nutri-Score de "a" a "e".</summary>
         public string? NutriScore { get; init; }

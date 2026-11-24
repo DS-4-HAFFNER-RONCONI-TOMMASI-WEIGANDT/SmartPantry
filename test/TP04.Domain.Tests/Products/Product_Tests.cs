@@ -61,14 +61,14 @@ namespace TP04.Products
             product.UpdateExternalData(new ProductExternalData
             {
                 ImageUrl = "  https://images.openfoodfacts.org/front.jpg  ",
-                Categories = new List<string> { "  Desayunos ", "", "desayunos", " Untables" },
+                Categories = new List<string> { "  Desayunos ", "", "Desayunos", " Untables" },
                 IngredientsText = "  Azúcar  ",
                 AllergenTags = new List<string> { " EN:Milk ", "en:milk", "   " },
                 NutriScore = " B "
             }, UpdatedAt);
 
             product.ImageUrl.ShouldBe("https://images.openfoodfacts.org/front.jpg");
-            // Se descartan vacíos y repetidos (sin distinguir mayúsculas).
+            // Se descartan vacíos y repetidos exactos (después de recortar espacios).
             product.GetCategories().ShouldBe(new[] { "Desayunos", "Untables" });
             product.IngredientsText.ShouldBe("Azúcar");
             product.GetAllergenTags().ShouldBe(new[] { "en:milk" });

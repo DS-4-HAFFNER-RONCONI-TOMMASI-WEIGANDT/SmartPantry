@@ -98,14 +98,14 @@ namespace TP04.Products
             var existing = await _productRepository.FindAsync(p => p.Barcode == normalizedBarcode);
             if (existing != null)
             {
-                existing.UpdateExternalData(externalData, Clock.Now);
+                existing.UpdateExternalData(externalData, DateTime.UtcNow);
                 return new ExternalProductSaveResult(existing, alreadyExisted: true);
             }
 
             var visibleName = string.IsNullOrWhiteSpace(name) ? normalizedBarcode : name;
 
             var product = new Product(GuidGenerator.Create(), normalizedBarcode, visibleName, brand);
-            product.UpdateExternalData(externalData, Clock.Now);
+            product.UpdateExternalData(externalData, DateTime.UtcNow);
 
             return new ExternalProductSaveResult(product, alreadyExisted: false);
         }
