@@ -275,6 +275,10 @@ namespace TP04.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AllergenTags")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("Barcode")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -283,6 +287,10 @@ namespace TP04.Migrations
                     b.Property<string>("Brand")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Categories")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -299,10 +307,21 @@ namespace TP04.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("CreatorId");
 
+                    b.Property<DateTime?>("ExternalDataUpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ExtraProperties")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<string>("IngredientsText")
+                        .HasMaxLength(10000)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("datetime2")
@@ -316,6 +335,13 @@ namespace TP04.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("NovaGroup")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NutriScore")
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)");
 
                     b.HasKey("Id");
 

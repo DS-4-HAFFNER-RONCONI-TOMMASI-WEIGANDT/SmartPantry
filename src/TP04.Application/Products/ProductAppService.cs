@@ -16,6 +16,7 @@ namespace TP04.Products
     //   - GetListAsync(input) -> filtrado, conteo, ordenamiento dinámico (input.Sorting),
     //                          paginado (SkipCount/MaxResultCount) y mapeo a ProductDto.
     //   - DeleteAsync(id)   -> Repository.DeleteAsync (borrado físico: Product no es ISoftDelete).
+    //                          TP final: antes verifica que el producto no esté en uso.
     //
     // Se adaptan (override) porque intervienen reglas del dominio:
     //   - CreateAsync -> la creación pasa por ProductManager (barcode único, normalización).
@@ -58,8 +59,8 @@ namespace TP04.Products
             DeletePolicyName = TP04Permissions.Products.Manage;
         }
 
-        // GetAsync, GetListAsync y DeleteAsync se sobrescriben solo llamando a base.
-        // Motivo: el interceptor de autorización de ABP busca [Authorize] en el método
+        // GetAsync, GetListAsync y DeleteAsync se sobrescriben llamando a base
+        // (DeleteAsync, además, verifica que el producto no esté en uso). Motivo: el interceptor de autorización de ABP busca [Authorize] en el método
         // y en la clase que lo DECLARA. Un método heredado se declara en CrudAppService
         // (sin [Authorize]), así que al llamar al servicio sin pasar por HTTP quedaba
         // abierto a un anónimo. Declarándolos acá se aplica el [Authorize] de esta clase.
@@ -74,9 +75,17 @@ namespace TP04.Products
             return base.GetListAsync(input);
         }
 
-        public override Task DeleteAsync(Guid id)
+        // TP final (RF-08): un producto en uso por alguna despensa no se borra
+        // (BusinessException TP04:Product:InUse en lugar del 500 de la FK Restrict).
+        // Primero se exige el permiso: así un usuario sin Products.Manage recibe 403
+        // y no puede averiguar si el producto está en uso.
+        public override async Task DeleteAsync(Guid id)
         {
-            return base.DeleteAsync(id);
+            await CheckDeletePolicyAsync();
+
+            await _productManager.EnsureNotInUseAsync(id);
+
+            await base.DeleteAsync(id);
         }
 
         public override async Task<ProductDto> CreateAsync(CreateProductDto input)

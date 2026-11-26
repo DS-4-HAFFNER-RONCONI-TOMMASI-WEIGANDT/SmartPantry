@@ -42,6 +42,7 @@
     "TakePhoto": "Tomar foto",
     "ChoosePhoto": "Escoge una foto",
     "TP04:Product:DuplicateBarcode": "Ya existe un producto con el código de barras {Barcode}.",
+    "TP04:Product:InUse": "No se puede borrar el producto porque está en la despensa de al menos un usuario.",
     "TP04:PantryItem:NegativeQuantity": "La cantidad no puede ser negativa.",
     "TP04:PantryItem:AlreadyConsumed": "Este ítem ya fue consumido y no se puede editar.",
     "Pantry:Validation:InvalidDate": "Ingrese una fecha de vencimiento válida, entre el 01/01/2000 y el 31/12/2100.",
